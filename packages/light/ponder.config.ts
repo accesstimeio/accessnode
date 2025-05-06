@@ -1,21 +1,14 @@
 import { createConfig } from "ponder";
-import { http } from "viem";
+import nodeConfig from "../../node.config";
+import { AccessTimeAbi } from "../../src/abis/AccessTimeAbi";
 
-import { ExampleContractAbi } from "./abis/ExampleContractAbi";
+const fullContracts = Object.fromEntries(
+  Object.entries(nodeConfig.contracts).map(([name, contract]) => {
+    return [name, { ...contract, abi: AccessTimeAbi }];
+  })
+);
 
 export default createConfig({
-  networks: {
-    mainnet: {
-      chainId: 1,
-      transport: http(process.env.PONDER_RPC_URL_1),
-    },
-  },
-  contracts: {
-    ExampleContract: {
-      network: "mainnet",
-      abi: ExampleContractAbi,
-      address: "0x0000000000000000000000000000000000000000",
-      startBlock: 1234567,
-    },
-  },
+  ...nodeConfig,
+  contracts: fullContracts
 });

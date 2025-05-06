@@ -6,7 +6,14 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.41
+        version: 20.17.41
+      viem:
+        specifier: ^2.29.0
+        version: 2.29.0(typescript@5.7.3)(zod@3.24.4)
 
   packages/light:
     dependencies:
