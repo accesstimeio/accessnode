@@ -4,17 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev:ui": "pnpm --filter ui run dev",
+    "build:ui": "pnpm --filter ui run build",
+    "preview:ui": "pnpm --filter ui run preview",
     "dev:light": "dotenv -e .env.local -- pnpm --filter light run dev",
     "start:light": "dotenv -e .env.local -- pnpm --filter light run start",
     "db:light": "dotenv -e .env.local -- pnpm --filter light run db",
-    "codegen:light": "dotenv -e .env.local -- pnpm --filter light run codegen"
+    "codegen:light": "dotenv -e .env.local -- pnpm --filter light run codegen",
+    "dev:light:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm dev:light\"",
+    "start:light:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm start:light\""
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "AccessTime",
+    "url": "https://github.com/accesstimeio"
+  },
+  "license": "MIT",
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "@types/node": "^20.17.41",
+    "concurrently": "^9.1.2",
     "dotenv-cli": "^8.0.0",
     "viem": "^2.29.0"
   }
