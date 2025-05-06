@@ -94,10 +94,12 @@ type NodeContractConfig<networks> = Prettify<
     BlockConfig
 >;
 
+type ContractNames = "AccessTime";
+
 type NodeContractsConfig<networks, contracts> = {} extends contracts
     ? {}
     : {
-        [name in keyof contracts]: NodeContractConfig<networks>;
+        [name in ContractNames]: NodeContractConfig<networks>;
     };
 
 // -- Accounts --

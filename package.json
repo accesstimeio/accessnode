@@ -1,10 +1,13 @@
 {
-  "name": "accesstime-node",
+  "name": "accessnode",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:light": "dotenv -e .env.local -- pnpm --filter light run dev",
+    "start:light": "dotenv -e .env.local -- pnpm --filter light run start",
+    "db:light": "dotenv -e .env.local -- pnpm --filter light run db",
+    "codegen:light": "dotenv -e .env.local -- pnpm --filter light run codegen"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +15,7 @@
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "@types/node": "^20.17.41",
+    "dotenv-cli": "^8.0.0",
     "viem": "^2.29.0"
   }
 }
