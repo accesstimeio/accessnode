@@ -10,6 +10,7 @@ import H1 from "./ui/typography/h1";
 import { Pagination, PaginationContent, PaginationItem } from "./ui/pagination";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { ReactNode } from "react";
 
 
 export default function Section<T>({
@@ -17,13 +18,15 @@ export default function Section<T>({
   title,
   graphQLLink,
   table,
-  tableColumns
+  tableColumns,
+  extraSettings
 }: {
   id: string,
   title: string,
   graphQLLink: string,
   table: TableType<T>,
-  tableColumns: any
+  tableColumns: any,
+  extraSettings?: ReactNode[]
 }) {
   return (
     <div className="grid gap-3">
@@ -36,6 +39,7 @@ export default function Section<T>({
         </div>
       </div>
       <div className="flex items-center gap-3">
+        {extraSettings?.map(extraSetting => extraSetting)}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
