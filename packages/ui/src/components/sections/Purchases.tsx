@@ -3,12 +3,9 @@ import { ColumnFiltersState, createColumnHelper, getCoreRowModel, getFacetedUniq
 import { useId, useMemo, useState } from "react";
 import { Address } from "ox/Address";
 import { Hex } from "ox/Hex";
+
+import { shortenAddress } from "@/helpers";
 import Section from "../Section";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Button } from "../ui/button";
-import { Filter } from "lucide-react";
-import { Label } from "../ui/label";
-import { Checkbox } from "../ui/checkbox";
 
 type PurchaseDto = {
   paymentMethod: Address;
@@ -211,7 +208,10 @@ const items = [
 export default function Purchases() {
   const id = useId();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    accessTimeUserId: false,
+    id: false
+  });
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -227,6 +227,7 @@ export default function Purchases() {
     () => [
       columnHelper.accessor('paymentMethod', {
         header: 'Payment Method',
+        cell: ({ getValue }) => shortenAddress(getValue()),
       }),
       columnHelper.accessor('timestamp', {
         header: 'Timestamp',
@@ -236,12 +237,14 @@ export default function Purchases() {
       }),
       columnHelper.accessor('accessTimeAddress', {
         header: 'AccessTime',
+        cell: ({ getValue }) => shortenAddress(getValue()),
       }),
       columnHelper.accessor('accessTimeUserId', {
         header: 'AccessTimeUser Id',
       }),
       columnHelper.accessor('address', {
         header: 'User Wallet',
+        cell: ({ getValue }) => shortenAddress(getValue()),
       }),
       columnHelper.accessor('amount', {
         header: 'Time',
@@ -280,43 +283,6 @@ export default function Purchases() {
     },
   });
 
-  const uniquePackageIds = useMemo(() => {
-    const packageIdColumn = table.getColumn("packageId");
-
-    if (!packageIdColumn) return [];
-
-    const values = Array.from(packageIdColumn.getFacetedUniqueValues().keys());
-
-    return values.sort();
-  }, [table.getColumn("packageId")?.getFacetedUniqueValues()]);
-  
-  const packageIdCount = useMemo(() => {
-    const packageIdColumn = table.getColumn("packageId");
-    if (!packageIdColumn) return new Map();
-    return packageIdColumn.getFacetedUniqueValues();
-  }, [table.getColumn("packageId")?.getFacetedUniqueValues()]);
-
-  const selectedPackageIds = useMemo(() => {
-    const filterValue = table.getColumn("packageId")?.getFilterValue() as string[];
-    return filterValue ?? [];
-  }, [table.getColumn("packageId")?.getFilterValue()]);
-
-  const handlePackageIdChange = (checked: boolean, value: string) => {
-    const filterValue = table.getColumn("packageId")?.getFilterValue() as string[];
-    const newFilterValue = filterValue ? [...filterValue] : [];
-
-    if (checked) {
-      newFilterValue.push(value);
-    } else {
-      const index = newFilterValue.indexOf(value);
-      if (index > -1) {
-        newFilterValue.splice(index, 1);
-      }
-    }
-
-    table.getColumn("packageId")?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
-  };
-
   return (
     <Section<PurchaseDto>
       id={id}
@@ -324,51 +290,7 @@ export default function Purchases() {
       graphQLLink="d"
       table={table}
       tableColumns={tableColumns}
-      extraSettings={[
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline">
-              <Filter
-                className="-ms-1 me-2 opacity-60"
-                size={16}
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-              Package Id
-              {selectedPackageIds.length > 0 && (
-                <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                  {selectedPackageIds.length}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="min-w-36 p-3" align="start">
-            <div className="space-y-3">
-              <div className="text-xs font-medium text-muted-foreground">Filters</div>
-              <div className="space-y-3">
-                {uniquePackageIds.map((value, i) => (
-                  <div key={value} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`${id}-${i}`}
-                      checked={selectedPackageIds.includes(value)}
-                      onCheckedChange={(checked: boolean) => handlePackageIdChange(checked, value)}
-                    />
-                    <Label
-                      htmlFor={`${id}-${i}`}
-                      className="flex grow justify-between gap-2 font-normal"
-                    >
-                      {value}{" "}
-                      <span className="ms-2 text-xs text-muted-foreground">
-                        {packageIdCount.get(value)}
-                      </span>
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      ]}
+      filters={[table.getColumn("paymentMethod")!, table.getColumn("accessTimeAddress")!, table.getColumn("address")!, table.getColumn("chainId")!, table.getColumn("packageId")!]}
     />
   )
 }

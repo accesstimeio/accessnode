@@ -1,7 +1,10 @@
 // credits: https://21st.dev/originui/table/example-of-a-more-complex-table-made-with-tan-stack-table
 import { ChevronDown, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ChevronUp, Columns3, ExternalLink } from "lucide-react";
-import { flexRender, Table as TableType } from "@tanstack/react-table";
+import { Column, flexRender, Table as TableType } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
+import { useCallback } from "react";
+import { Filter } from "lucide-react";
+import { validate } from "ox/Address"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -10,8 +13,9 @@ import H1 from "./ui/typography/h1";
 import { Pagination, PaginationContent, PaginationItem } from "./ui/pagination";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ReactNode } from "react";
-
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Checkbox } from "./ui/checkbox";
+import { shortenAddress } from "@/helpers";
 
 export default function Section<T>({
   id,
@@ -19,15 +23,52 @@ export default function Section<T>({
   graphQLLink,
   table,
   tableColumns,
-  extraSettings
+  filters
 }: {
   id: string,
   title: string,
   graphQLLink: string,
   table: TableType<T>,
   tableColumns: any,
-  extraSettings?: ReactNode[]
+  filters?: Column<T, unknown>[]
 }) {
+  const uniqueColumnDatas = useCallback((column: string) => {
+    const _column = table.getColumn(column);
+
+    if (!_column) return [];
+
+    const values = Array.from(_column.getFacetedUniqueValues().keys());
+
+    return values.sort();
+  }, []);
+
+  const columnDataCount = useCallback((column: string) => {
+    const _column = table.getColumn(column);
+    if (!_column) return new Map();
+    return _column.getFacetedUniqueValues();
+  }, []);
+
+  const selectedColumnDatas = useCallback((column: string) => {
+    const filterValue = table.getColumn(column)?.getFilterValue() as string[];
+    return filterValue ?? [];
+  }, []);
+
+  const handleColumnDataChange = useCallback((column: string, checked: boolean, value: string) => {
+    const filterValue = table.getColumn(column)?.getFilterValue() as string[];
+    const newFilterValue = filterValue ? [...filterValue] : [];
+
+    if (checked) {
+      newFilterValue.push(value);
+    } else {
+      const index = newFilterValue.indexOf(value);
+      if (index > -1) {
+        newFilterValue.splice(index, 1);
+      }
+    }
+    // todo: multiple selection goes wrong, its should be "OR" not "AND"
+    table.getColumn(column)?.setFilterValue(newFilterValue.length ? newFilterValue : undefined);
+  }, []);
+
   return (
     <div className="grid gap-3">
       <div className="grid gap-3 md:grid-cols-2 pb-3 border-b-1">
@@ -38,8 +79,55 @@ export default function Section<T>({
           </a>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        {extraSettings?.map(extraSetting => extraSetting)}
+      <div className="flex items-center gap-3 overflow-y-auto">
+        {
+          filters?.map((filter, index) => (
+            filter &&
+            <Popover key={`${id}-filter-${index}`}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Filter
+                    className="-ms-1 me-2 opacity-60"
+                    size={16}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  {filter.columnDef.header?.toString()}
+                  {selectedColumnDatas(filter.id).length > 0 && (
+                    <span className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+                      {selectedColumnDatas(filter.id).length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="min-w-36 p-3" align="start">
+                <div className="space-y-3">
+                  <div className="text-xs font-medium text-muted-foreground">Filters</div>
+                  <div className="space-y-3">
+                    {uniqueColumnDatas(filter.id).map((value, i) => (
+                      <div key={value} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`${id}-${filter.id}-checkbox-${i}`}
+                          checked={selectedColumnDatas(filter.id).includes(value)}
+                          onCheckedChange={(checked: boolean) => handleColumnDataChange(filter.id, checked, value)}
+                        />
+                        <Label
+                          htmlFor={`${id}-${filter.id}-label-${i}`}
+                          className="flex grow justify-between gap-2 font-normal"
+                        >
+                          { validate(value, { strict: true }) ? shortenAddress(value) : value}{" "}
+                          <span className="ms-2 text-xs text-muted-foreground">
+                            {columnDataCount(filter.id).get(value)}
+                          </span>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          ))
+        }
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
