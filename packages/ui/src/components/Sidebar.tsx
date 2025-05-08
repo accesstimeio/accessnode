@@ -1,6 +1,6 @@
 "use client";
 // credits: https://21st.dev/aceternity/sidebar/default
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 
 import { Sidebar as SidebarWrapper, SidebarBody, SidebarLink } from "./ui/sidebar";
@@ -9,6 +9,12 @@ import { ModeToggle } from "./mode-toggle";
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
+    const scrollToSection = useCallback((section: string) => {
+        const element = document.getElementById(`section_${section.toLowerCase().split(" ").join()}`);
+        element?.scrollIntoView({
+            behavior: 'smooth'
+        }); 
+    }, []);
     return (
         <SidebarWrapper open={open} setOpen={setOpen}>
             <SidebarBody className="justify-between gap-10">
@@ -16,7 +22,7 @@ export default function Sidebar() {
                     {open ? <Logo /> : <LogoIcon />}
                     <div className="mt-8 flex flex-col gap-2">
                         {SIDEBAR_LINKS.light.map((link, idx) => (
-                            <SidebarLink key={idx} link={link} />
+                            <SidebarLink key={idx} link={link} onClick={() => scrollToSection(link.label)} />
                         ))}
                     </div>
                 </div>

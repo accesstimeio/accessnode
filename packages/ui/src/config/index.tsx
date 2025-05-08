@@ -25,7 +25,7 @@ export const SIDEBAR_LINKS: Record<SupportNodeType, SidebarLink[]> = {
             icon: <Receipt className={sidebarIconClassNames} />,
         },
         {
-            label: "AccessTime Users",
+            label: "AccessTimeUsers",
             href: "#",
             icon: <FileUser className={sidebarIconClassNames} />,
         },

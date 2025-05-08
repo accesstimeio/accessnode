@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import React, { useState, createContext, useContext, HTMLAttributeReferrerPolicy } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { ModeToggle } from "../mode-toggle";
 
 interface Links {
     label: string;
@@ -116,9 +117,10 @@ export const MobileSidebar = ({
                 )}
                 {...props}
             >
-                <div className="flex justify-end z-20 w-full">
+                <div className="flex items-center justify-end z-20 w-full">
+                    <ModeToggle />
                     <Menu
-                        className="text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                        className="ml-3 text-neutral-800 dark:text-neutral-200 cursor-pointer"
                         onClick={() => setOpen(!open)}
                     />
                 </div>
@@ -160,6 +162,7 @@ export const SidebarLink = ({
     link: Links;
     className?: string;
     props?: HTMLAttributeReferrerPolicy;
+    onClick?: () => void;
 }) => {
     const { open, animate } = useSidebar();
     return (
