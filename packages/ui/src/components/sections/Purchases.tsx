@@ -3,14 +3,17 @@ import { ColumnFiltersState, createColumnHelper, getCoreRowModel, getFacetedUniq
 import { useId, useMemo, useState } from "react";
 import { Address } from "ox/Address";
 import { Hex } from "ox/Hex";
+import moment from "moment";
 
 import { shortenAddress } from "@/helpers";
 import Section from "../Section";
 
 type PurchaseDto = {
   paymentMethod: Address;
+  symbol: string;
   timestamp: string;
   paymentAmount: string;
+  formattedPaymentAmount: string;
   accessTimeAddress: Address;
   accessTimeUserId: Hex;
   address: Address;
@@ -25,8 +28,10 @@ const columnHelper = createColumnHelper<PurchaseDto>();
 const items = [
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1742756604",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -37,8 +42,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1742236574",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -49,8 +56,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1741595876",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -61,8 +70,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1741599532",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -73,8 +84,10 @@ const items = [
   },
   {
     "paymentMethod": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
     "timestamp": "1741082460",
     "paymentAmount": "4000000000000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0x215cb0a20a070c19978f15a50c1ca3ddfd4823964b4ec4e4e75ed567be480aa1",
     "address": "0x93453f31d0279b90391d9870daff35055ef49bac",
@@ -85,8 +98,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1745256720",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -97,8 +112,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1742236926",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -109,8 +126,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1744907360",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -121,8 +140,10 @@ const items = [
   },
   {
     "paymentMethod": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
     "timestamp": "1741979038",
     "paymentAmount": "100000000000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0x4a40e9d6974c69ff5109bddfca137229d62379859a7d955850f6a16b513b9843",
     "address": "0xcc022ff1d4466bd99824f869c3e28e4596d456b4",
@@ -133,8 +154,10 @@ const items = [
   },
   {
     "paymentMethod": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
     "timestamp": "1741979262",
     "paymentAmount": "100000000000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0x4a40e9d6974c69ff5109bddfca137229d62379859a7d955850f6a16b513b9843",
     "address": "0xcc022ff1d4466bd99824f869c3e28e4596d456b4",
@@ -145,8 +168,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1740125306",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -157,8 +182,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1744657822",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -169,8 +196,10 @@ const items = [
   },
   {
     "paymentMethod": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
     "timestamp": "1741945332",
     "paymentAmount": "1000000000000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0x1e0b72ccf506342083feafacf69e43d6c424a2e533fa334b7c5ad21e781da976",
     "address": "0x647d80b8a077fec2a594267807fe57d5d16d2750",
@@ -181,8 +210,10 @@ const items = [
   },
   {
     "paymentMethod": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
     "timestamp": "1742236182",
     "paymentAmount": "1000000000000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0x95d4ebf3a18471e7fdb076680aa9f2b5b6bff3fd3c61d7844a4ef35ef1825067",
     "address": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
@@ -193,8 +224,10 @@ const items = [
   },
   {
     "paymentMethod": "0xb12604240ab6a2a43c01a86942ecdf8572ff48ea",
+    "symbol": "TKN",
     "timestamp": "1742236806",
     "paymentAmount": "2000000",
+    "formattedPaymentAmount": "2",
     "accessTimeAddress": "0xb57527fe48680f4648873ae6fec84b3837317c54",
     "accessTimeUserId": "0xe1d1a1d0a127bc689cfe38d7d7084b445ed411636694a797b629fb16c0b2ed74",
     "address": "0xb82e5804935b4ee8cc7c0bd3f2a1d3aba85d0c48",
@@ -209,6 +242,8 @@ export default function Purchases() {
   const id = useId();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    paymentMethod: false,
+    paymentAmount: false,
     accessTimeUserId: false,
     id: false
   });
@@ -225,38 +260,46 @@ export default function Purchases() {
 
   const tableColumns = useMemo(
     () => [
-      columnHelper.accessor('paymentMethod', {
-        header: 'Payment Method',
-        cell: ({ getValue }) => shortenAddress(getValue()),
-      }),
-      columnHelper.accessor('timestamp', {
-        header: 'Timestamp',
-      }),
-      columnHelper.accessor('paymentAmount', {
-        header: 'Amount',
+      columnHelper.accessor('chainId', {
+        header: 'Chain Id',
       }),
       columnHelper.accessor('accessTimeAddress', {
         header: 'AccessTime',
         cell: ({ getValue }) => shortenAddress(getValue()),
       }),
-      columnHelper.accessor('accessTimeUserId', {
-        header: 'AccessTimeUser Id',
-      }),
       columnHelper.accessor('address', {
         header: 'User Wallet',
         cell: ({ getValue }) => shortenAddress(getValue()),
       }),
+      columnHelper.accessor('packageId', {
+        header: 'Package Id',
+      }),
+      columnHelper.accessor('symbol', {
+        header: 'Currency',
+      }),
+      columnHelper.accessor('paymentMethod', {
+        header: 'Payment Method',
+        cell: ({ getValue }) => shortenAddress(getValue()),
+      }),
+      columnHelper.accessor('paymentAmount', {
+        header: 'Raw Amount',
+      }),
+      columnHelper.accessor('formattedPaymentAmount', {
+        header: 'Amount',
+      }),
       columnHelper.accessor('amount', {
         header: 'Time',
+        cell: ({ getValue }) => moment.duration(getValue(), 'seconds').humanize(),
       }),
-      columnHelper.accessor('chainId', {
-        header: 'Chain Id',
+      columnHelper.accessor('timestamp', {
+        header: 'Timestamp',
+        cell: ({ getValue }) => moment.unix(Number(getValue())).format('YYYY-MM-DD HH:mm:ss'),
+      }),
+      columnHelper.accessor('accessTimeUserId', {
+        header: 'AccessTimeUser Id',
       }),
       columnHelper.accessor('id', {
         header: 'Purchase Id',
-      }),
-      columnHelper.accessor('packageId', {
-        header: 'Package Id',
       }),
     ],
     []
@@ -290,7 +333,13 @@ export default function Purchases() {
       graphQLLink="d"
       table={table}
       tableColumns={tableColumns}
-      filters={[table.getColumn("paymentMethod")!, table.getColumn("accessTimeAddress")!, table.getColumn("address")!, table.getColumn("chainId")!, table.getColumn("packageId")!]}
+      filters={[
+        table.getColumn("chainId")!,
+        table.getColumn("accessTimeAddress")!,
+        table.getColumn("address")!,
+        table.getColumn("packageId")!,
+        table.getColumn("symbol")!
+      ]}
     />
   )
 }
