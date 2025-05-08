@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { Receipt, UserRound, FileUser } from "lucide-react";
 
+export const NODE_TYPE = import.meta.env.ACCESNODE_TYPE;
+
 import Purchases from "@/components/sections/Purchases";
 import AccessTimeUsers from "@/components/sections/AccessTimeUsers";
 import Users from "@/components/sections/Users";

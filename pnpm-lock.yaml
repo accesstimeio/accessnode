@@ -48,6 +48,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@ponder/client':
+        specifier: ^0.10.25
+        version: 0.10.25(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.15.6)(typescript@5.7.3)
+      '@ponder/react':
+        specifier: ^0.10.25
+        version: 0.10.25(@ponder/client@0.10.25(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.15.6)(typescript@5.7.3))(@tanstack/react-query@5.75.5(react@19.1.0))(react@19.1.0)(typescript@5.7.3)
       '@radix-ui/react-checkbox':
         specifier: ^1.3.1
         version: 1.3.1(@types/react-dom@19.1.3(@types/react@19.1.3))(@types/react@19.1.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -69,6 +75,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.5
         version: 4.1.5(vite@6.3.5(@types/node@22.15.12)(jiti@2.4.2)(lightningcss@1.29.2))
+      '@tanstack/react-query':
+        specifier: ^5.75.5
+        version: 5.75.5(react@19.1.0)
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -751,6 +760,25 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
+  '@ponder/client@0.10.25':
+    resolution: {integrity: sha512-xW1ghEA5hLNnTeOYU8cCS5v/6sN5YrUU1q9JScVwedUVYx1kKWkIhsGbxeljZYivuF1LhTB0OD4bW7co/wn5rg==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  '@ponder/react@0.10.25':
+    resolution: {integrity: sha512-Dqg1GqAAhy/Kt0CPzYNtlzN+szapDsKzudzQNXh4T5RLm5ipPF1MvqPuuEHnJCGqaPKlNKOVgOdKJ3n/5awO3g==}
+    peerDependencies:
+      '@ponder/client': '>=0.10.25'
+      '@tanstack/react-query': '>=5.0.0'
+      react: '>=18'
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   '@ponder/utils@0.2.6':
     resolution: {integrity: sha512-rsb4Sbq9+v2WRwsQMepkBaUXzQYbHE5fNkqumaECL8KSS9pvetA357Lud+S+QDaXVhikidT+BFRcJLYnRjFTdQ==}
     peerDependencies:
@@ -1304,6 +1332,14 @@ packages:
     resolution: {integrity: sha512-FE1stRoqdHSb7RxesMfCXE8icwI1W6zGE/512ae3ZDrpkQYTTYeSyUJPRCjZd8CwVAhpDUbi1YR8pcZioFJQ/w==}
     peerDependencies:
       vite: ^5.2.0 || ^6
+
+  '@tanstack/query-core@5.75.5':
+    resolution: {integrity: sha512-kPDOxtoMn2Ycycb76Givx2fi+2pzo98F9ifHL/NFiahEDpDwSVW6o12PRuQ0lQnBOunhRG5etatAhQij91M3MQ==}
+
+  '@tanstack/react-query@5.75.5':
+    resolution: {integrity: sha512-QrLCJe40BgBVlWdAdf2ZEVJ0cISOuEy/HKupId1aTKU6gPJZVhSvZpH+Si7csRflCJphzlQ77Yx6gUxGW9o0XQ==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tanstack/react-table@8.21.3':
     resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
@@ -3784,6 +3820,52 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@ponder/client@0.10.25(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.15.6)(typescript@5.7.3)':
+    dependencies:
+      drizzle-orm: 0.41.0(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.15.6)
+      eventsource: 3.0.6
+      superjson: 2.2.2
+    optionalDependencies:
+      typescript: 5.7.3
+    transitivePeerDependencies:
+      - '@aws-sdk/client-rds-data'
+      - '@cloudflare/workers-types'
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@libsql/client-wasm'
+      - '@neondatabase/serverless'
+      - '@op-engineering/op-sqlite'
+      - '@opentelemetry/api'
+      - '@planetscale/database'
+      - '@prisma/client'
+      - '@tidbcloud/serverless'
+      - '@types/better-sqlite3'
+      - '@types/pg'
+      - '@types/sql.js'
+      - '@vercel/postgres'
+      - '@xata.io/client'
+      - better-sqlite3
+      - bun-types
+      - expo-sqlite
+      - gel
+      - knex
+      - kysely
+      - mysql2
+      - pg
+      - postgres
+      - prisma
+      - sql.js
+      - sqlite3
+
+  '@ponder/react@0.10.25(@ponder/client@0.10.25(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.15.6)(typescript@5.7.3))(@tanstack/react-query@5.75.5(react@19.1.0))(react@19.1.0)(typescript@5.7.3)':
+    dependencies:
+      '@ponder/client': 0.10.25(@electric-sql/pglite@0.2.13)(@opentelemetry/api@1.9.0)(kysely@0.26.3)(pg@8.15.6)(typescript@5.7.3)
+      '@tanstack/react-query': 5.75.5(react@19.1.0)
+      react: 19.1.0
+      superjson: 2.2.2
+    optionalDependencies:
+      typescript: 5.7.3
+
   '@ponder/utils@0.2.6(typescript@5.7.3)(viem@2.29.0(typescript@5.7.3)(zod@3.24.4))':
     dependencies:
       viem: 2.29.0(typescript@5.7.3)(zod@3.24.4)
@@ -4263,6 +4345,13 @@ snapshots:
       '@tailwindcss/oxide': 4.1.5
       tailwindcss: 4.1.5
       vite: 6.3.5(@types/node@22.15.12)(jiti@2.4.2)(lightningcss@1.29.2)
+
+  '@tanstack/query-core@5.75.5': {}
+
+  '@tanstack/react-query@5.75.5(react@19.1.0)':
+    dependencies:
+      '@tanstack/query-core': 5.75.5
+      react: 19.1.0
 
   '@tanstack/react-table@8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
