@@ -26,6 +26,8 @@ export const purchase = onchainTable("purchase", (t) => ({
   accessTimeUserId: t.hex().notNull(),
   amount: t.bigint().notNull(),
   paymentAmount: t.bigint().notNull(),
+  formattedPaymentAmount: t.text().notNull(),
+  symbol: t.text().notNull(),
   paymentMethod: t.hex().notNull(),
   packageId: t.bigint().notNull(),
   timestamp: t.bigint().notNull()

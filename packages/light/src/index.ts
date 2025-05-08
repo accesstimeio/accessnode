@@ -4,7 +4,7 @@ import {
   purchase as purchaseSchema,
   user as userSchema
 } from "ponder:schema";
-import { encodeAbiParameters, keccak256, parseEther } from "viem";
+import { encodeAbiParameters, formatUnits, keccak256, parseAbi, parseEther, zeroAddress } from "viem";
 import { AccessTimeAbi } from "../../../src/abis/AccessTimeAbi";
 
 ponder.on("AccessTime:Purchased", async ({ event, context }) => {
@@ -23,6 +23,28 @@ ponder.on("AccessTime:Purchased", async ({ event, context }) => {
   });
   const paymentAmount = (((event.args.amount * parseEther("1")) / 3600n) * paymentMethodRate) / parseEther("1");
 
+  let paymentMethodDecimal: number = 18;
+  let paymentMethodSymbol: string = "ETH";
+  if (event.args.paymentToken != zeroAddress) {
+    try {
+      paymentMethodDecimal = await context.client.readContract({
+        abi: parseAbi(["function decimals() view returns (uint8)"]),
+        address: event.args.paymentToken,
+        functionName: "decimals"
+      });
+
+      paymentMethodSymbol = await context.client.readContract({
+        abi: parseAbi(["function symbol() view returns (string)"]),
+        address: event.args.paymentToken,
+        functionName: "symbol"
+      });
+    } catch (error) {
+      console.log("PaymentMethodDetail:read failed", error);
+    }
+  }
+
+  const formattedPaymentAmount = formatUnits(paymentAmount, paymentMethodDecimal);
+
   await context.db.insert(purchaseSchema).values({
     id: event.transaction.hash,
     chainId,
@@ -31,6 +53,8 @@ ponder.on("AccessTime:Purchased", async ({ event, context }) => {
     accessTimeUserId,
     amount: event.args.amount,
     paymentAmount,
+    formattedPaymentAmount,
+    symbol: paymentMethodSymbol,
     paymentMethod: event.args.paymentToken,
     packageId: -1n,
     timestamp: event.block.timestamp
@@ -87,6 +111,28 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
   });
   const paymentAmount = (((event.args.amount * parseEther("1")) / 3600n) * paymentMethodRate) / parseEther("1");
 
+  let paymentMethodDecimal: number = 18;
+  let paymentMethodSymbol: string = "ETH";
+  if (event.args.paymentToken != zeroAddress) {
+    try {
+      paymentMethodDecimal = await context.client.readContract({
+        abi: parseAbi(["function decimals() view returns (uint8)"]),
+        address: event.args.paymentToken,
+        functionName: "decimals"
+      });
+
+      paymentMethodSymbol = await context.client.readContract({
+        abi: parseAbi(["function symbol() view returns (string)"]),
+        address: event.args.paymentToken,
+        functionName: "symbol"
+      });
+    } catch (error) {
+      console.log("PaymentMethodDetail:read failed", error);
+    }
+  }
+
+  const formattedPaymentAmount = formatUnits(paymentAmount, paymentMethodDecimal);
+
   await context.db.insert(purchaseSchema).values({
     id: event.transaction.hash,
     chainId,
@@ -95,6 +141,8 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
     accessTimeUserId,
     amount: event.args.amount,
     paymentAmount,
+    formattedPaymentAmount,
+    symbol: paymentMethodSymbol,
     paymentMethod: event.args.paymentToken,
     packageId: event.args.packageID,
     timestamp: event.block.timestamp
