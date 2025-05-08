@@ -60,7 +60,7 @@ ponder.on("AccessTime:Purchased", async ({ event, context }) => {
     timestamp: event.block.timestamp
   });
 
-  const user = context.db.find(userSchema, { id: event.args.user, chainId });
+  const user = await context.db.find(userSchema, { id: event.args.user, chainId });
 
   if (user == null) {
     await context.db.insert(userSchema).values({ id: event.args.user, chainId });
@@ -148,7 +148,7 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
     timestamp: event.block.timestamp
   });
 
-  const user = context.db.find(userSchema, { id: event.args.user, chainId });
+  const user = await context.db.find(userSchema, { id: event.args.user, chainId });
 
   if (user == null) {
     await context.db.insert(userSchema).values({ id: event.args.user, chainId });
