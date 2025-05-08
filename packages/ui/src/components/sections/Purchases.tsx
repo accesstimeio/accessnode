@@ -9,6 +9,7 @@ import { usePonderQuery } from "@ponder/react";
 
 import { shortenAddress } from "@/helpers";
 import Section from "../Section";
+import SkeletonSection from "../skeletons/Section";
 
 type PurchaseDto = {
   id: Hex;
@@ -47,8 +48,7 @@ export default function Purchases() {
     },
   ]);
 
-  const { data, isSuccess } = usePonderQuery({
-    // enabled: false,
+  const { data, isSuccess, isLoading } = usePonderQuery({
     queryFn: (db) => 
       db
         .select()
@@ -124,18 +124,21 @@ export default function Purchases() {
   });
 
   return (
-    <Section<PurchaseDto>
-      id={id}
-      title="Purchases"
-      table={table}
-      tableColumns={tableColumns}
-      filters={[
-        table.getColumn("chainId")!,
-        table.getColumn("accessTimeAddress")!,
-        table.getColumn("address")!,
-        table.getColumn("packageId")!,
-        table.getColumn("symbol")!
-      ]}
-    />
+    isLoading ?
+      <SkeletonSection title="Purchases" />
+      :
+      <Section<PurchaseDto>
+        id={id}
+        title="Purchases"
+        table={table}
+        tableColumns={tableColumns}
+        filters={[
+          table.getColumn("chainId")!,
+          table.getColumn("accessTimeAddress")!,
+          table.getColumn("address")!,
+          table.getColumn("packageId")!,
+          table.getColumn("symbol")!
+        ]}
+      />
   )
 }
