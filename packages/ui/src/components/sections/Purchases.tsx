@@ -139,6 +139,9 @@ export default function Purchases() {
           table.getColumn("packageId")!,
           table.getColumn("symbol")!
         ]}
+        filterInputs={[
+          table.getColumn("address")!
+        ]}
       />
   )
 }

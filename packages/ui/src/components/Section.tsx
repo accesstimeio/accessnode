@@ -1,5 +1,6 @@
+"use client";
 // credits: https://21st.dev/originui/table/example-of-a-more-complex-table-made-with-tan-stack-table
-import { ChevronDown, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ChevronUp, Columns3, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ChevronUp, CircleX, Columns3, ExternalLink, ListFilter } from "lucide-react";
 import { Column, flexRender, Table as TableType } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
@@ -17,19 +18,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Checkbox } from "./ui/checkbox";
 import { shortenAddress } from "@/helpers";
 import { NODE_URL } from "@/config";
+import { Input } from "./ui/input";
 
 export default function Section<T>({
   id,
   title,
   table,
   tableColumns,
-  filters
+  filters,
+  filterInputs
 }: {
   id: string,
   title: string,
   table: TableType<T>,
   tableColumns: any,
   filters?: Column<T, unknown>[]
+  filterInputs?: Column<T, unknown>[]
 }) {
   const uniqueColumnDatas = useCallback((column: string) => {
     const _column = table.getColumn(column);
@@ -78,6 +82,41 @@ export default function Section<T>({
           </a>
         </div>
       </div>
+      <div className="flex items-center gap-3">
+
+      {
+          filterInputs?.map((filter, index) => (
+            filter &&
+            <div key={`${id}-filterInput-${index}`} className="relative">
+              <Input
+                id={`${id}-input`}
+                className={cn(
+                  "peer min-w-60 ps-9",
+                  Boolean(table.getColumn(filter.id)?.getFilterValue()) && "pe-9",
+                )}
+                value={(table.getColumn(filter.id)?.getFilterValue() ?? "") as string}
+                onChange={(e) => table.getColumn(filter.id)?.setFilterValue(e.target.value)}
+                placeholder={`Filter by ${filter.columnDef.header?.toString()}...`}
+                type="text"
+              />
+              <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+                <ListFilter size={16} strokeWidth={2} aria-hidden="true" />
+              </div>
+              {Boolean(table.getColumn(filter.id)?.getFilterValue()) && (
+                <button
+                  className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Clear filter"
+                  onClick={() => {
+                    table.getColumn(filter.id)?.setFilterValue("");
+                  }}
+                >
+                  <CircleX size={16} strokeWidth={2} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          ))
+      }
+      </div>
       <div className="flex items-center gap-3 overflow-y-auto">
         {
           filters?.map((filter, index) => (
@@ -114,7 +153,7 @@ export default function Section<T>({
                           htmlFor={`${id}-${filter.id}-label-${i}`}
                           className="flex grow justify-between gap-2 font-normal"
                         >
-                          { validate(value, { strict: true }) ? shortenAddress(value) : value}{" "}
+                          {validate(value, { strict: true }) ? shortenAddress(value) : value}{" "}
                           <span className="ms-2 text-xs text-muted-foreground">
                             {columnDataCount(filter.id).get(value)}
                           </span>

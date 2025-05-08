@@ -119,6 +119,9 @@ export default function AccessTimeUsers() {
           table.getColumn("chainId")!,
           table.getColumn("accessTimeAddress")!
         ]}
+        filterInputs={[
+          table.getColumn("address")!
+        ]}
       />
   )
 }

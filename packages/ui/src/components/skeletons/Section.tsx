@@ -15,6 +15,9 @@ export default function Section({ title }: {title: string}) {
             </div>
           </div>
           <div className="flex items-center gap-3 overflow-y-auto">
+            <Skeleton className="w-[240px] h-[36px] rounded-lg" />
+          </div>
+          <div className="flex items-center gap-3 overflow-y-auto">
             <Skeleton className="w-[108px] h-[36px] rounded-lg" />
             <Skeleton className="w-[108px] h-[36px] rounded-lg" />
             <Skeleton className="w-[108px] h-[36px] rounded-lg" />
