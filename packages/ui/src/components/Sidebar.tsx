@@ -1,10 +1,11 @@
 "use client";
 // credits: https://21st.dev/aceternity/sidebar/default
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 import { Sidebar as SidebarWrapper, SidebarBody, SidebarLink } from "./ui/sidebar";
-import { motion } from "framer-motion";
 import { SIDEBAR_LINKS } from "@/config";
+import { ModeToggle } from "./mode-toggle";
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
@@ -18,6 +19,9 @@ export default function Sidebar() {
                             <SidebarLink key={idx} link={link} />
                         ))}
                     </div>
+                </div>
+                <div>
+                    <ModeToggle />
                 </div>
             </SidebarBody>
         </SidebarWrapper>

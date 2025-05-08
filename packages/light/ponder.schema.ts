@@ -54,4 +54,4 @@ export const user = onchainTable("user", (t) => ({
 export const userRelations = relations(user, ({ many }) => ({
   purchaseHistory: many(purchase),
   accessTimeProfiles: many(accessTimeUser)
-}))
+}));
