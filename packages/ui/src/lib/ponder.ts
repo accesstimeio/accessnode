@@ -1,9 +1,9 @@
 import { createClient } from "@ponder/client";
-import { NODE_TYPE } from "@/config";
 import * as lightSchema from "../../../light/ponder.schema";
 
-const schema = NODE_TYPE == "full" ? lightSchema : lightSchema;
-const client = createClient("http://localhost:42069/sql", { schema });
-// todo: get url from env and accessNode-full schema configurations
- 
+const NODE_URL = import.meta.env.ACCESSNODE_URL ? import.meta.env.ACCESSNODE_URL : "http://localhost:42069";
+const schema = import.meta.env.ACCESSNODE_TYPE == "full" ? lightSchema : lightSchema;
+const client = createClient(`${NODE_URL}/sql`, { schema });
+// todo: accessNode-full schema configurations
+
 export { client, schema };

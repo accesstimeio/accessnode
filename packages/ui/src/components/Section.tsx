@@ -16,18 +16,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Checkbox } from "./ui/checkbox";
 import { shortenAddress } from "@/helpers";
+import { NODE_URL } from "@/config";
 
 export default function Section<T>({
   id,
   title,
-  graphQLLink,
   table,
   tableColumns,
   filters
 }: {
   id: string,
   title: string,
-  graphQLLink: string,
   table: TableType<T>,
   tableColumns: any,
   filters?: Column<T, unknown>[]
@@ -74,7 +73,7 @@ export default function Section<T>({
       <div className="grid gap-3 md:grid-cols-2 pb-3 border-b-1">
         <H1 content={title} />
         <div className="flex flex-col items-end">
-          <a href={graphQLLink} target="_blank" className={buttonVariants()}>
+          <a href={`${NODE_URL}/graphql`} target="_blank" className={buttonVariants()}>
             Try in GraphQL <ExternalLink />
           </a>
         </div>

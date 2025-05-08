@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { Receipt, UserRound, FileUser } from "lucide-react";
 
-export const NODE_TYPE = import.meta.env.ACCESNODE_TYPE;
+export const NODE_TYPE = import.meta.env.ACCESSNODE_TYPE ? import.meta.env.ACCESSNODE_TYPE : "light";
+export const NODE_URL = import.meta.env.ACCESSNODE_URL ? import.meta.env.ACCESSNODE_URL : "http://localhost:42069";
 
 import Purchases from "@/components/sections/Purchases";
 import AccessTimeUsers from "@/components/sections/AccessTimeUsers";

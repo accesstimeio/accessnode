@@ -14,7 +14,7 @@ export const accessTimeUser = onchainTable("accesstime_user", (t) => ({
   }),
 }));
 
-export const accessTimeUserRelations = relations(accessTimeUser, ({ one, many }) => ({
+export const accessTimeUserRelations = relations(accessTimeUser, ({ one }) => ({
   user: one(user, { fields: [accessTimeUser.address], references: [user.id] })
 }));
 
