@@ -86,7 +86,7 @@ export default function Purchases() {
       }),
       columnHelper.accessor('amount', {
         header: 'Time',
-        cell: ({ getValue }) => moment.duration(getValue().toString(), 'seconds').humanize(),
+        cell: ({ getValue }) => moment.duration(Number(getValue()), 'seconds').humanize(),
       }),
       columnHelper.accessor('timestamp', {
         header: 'Timestamp',
@@ -96,7 +96,7 @@ export default function Purchases() {
         header: 'AccessTimeUser Id',
       }),
       columnHelper.accessor('id', {
-        header: 'Purchase Id',
+        header: 'Id',
       }),
     ],
     []
