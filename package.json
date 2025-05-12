@@ -5,14 +5,20 @@
   "main": "index.js",
   "scripts": {
     "dev:ui": "pnpm --filter ui run dev",
+    "dev:light": "dotenv -e .env.local -- pnpm --filter light run dev",
+    "dev:full": "dotenv -e .env.local -- pnpm --filter full run dev",
+    "dev:light:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm dev:light\"",
+    "dev:full:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm dev:full\"",
     "build:ui": "pnpm --filter ui run build",
     "preview:ui": "pnpm --filter ui run preview",
-    "dev:light": "dotenv -e .env.local -- pnpm --filter light run dev",
     "start:light": "dotenv -e .env.local -- pnpm --filter light run start",
+    "start:full": "dotenv -e .env.local -- pnpm --filter full run start",
+    "start:light:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm start:light\"",
+    "start:full:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm start:full\"",
     "db:light": "dotenv -e .env.local -- pnpm --filter light run db",
+    "db:full": "dotenv -e .env.local -- pnpm --filter full run db",
     "codegen:light": "dotenv -e .env.local -- pnpm --filter light run codegen",
-    "dev:light:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm dev:light\"",
-    "start:light:ui": "pnpm build:ui && concurrently \"pnpm preview:ui\" \"pnpm start:light\""
+    "codegen:full": "dotenv -e .env.local -- pnpm --filter full run codegen"
   },
   "keywords": [],
   "author": {
