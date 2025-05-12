@@ -1,9 +1,9 @@
 "use client";
 // tab-credits: https://21st.dev/originui/tabs/file-tabs
 import { usePonderQuery } from "@ponder/react";
-import { CornerDownRight, ExternalLink } from "lucide-react";
+import { Check, CornerDownRight, ExternalLink, X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { Chain } from "@accesstimeio/accesstime-common"
+import { Chain, getChainName, SUPPORTED_CHAIN } from "@accesstimeio/accesstime-common"
 
 import Section from "../Section";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
@@ -11,6 +11,7 @@ import * as fullSchema from "../../../../full/ponder.schema";
 import { Label } from "../ui/label";
 import CopyableAddress from "../CopyableAddress";
 import { buttonVariants } from "../ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 
 const overviewTabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
@@ -44,7 +45,9 @@ export default function Overview() {
       <Tabs className="w-full" defaultValue="tab-1">
         <TabsList className="relative h-auto w-fit gap-0.5 bg-transparent p-0 px-2 before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-border">
           {deployments.map((deployment, index) =>
-            <TabsTrigger key={`overview-tab-${index}`} ref={index == 0 ? firstTab : undefined} value={`tab-${index}`} className={overviewTabClassName}>#{deployment.accessTimeId} Project</TabsTrigger>)}
+            <TabsTrigger key={`overview-tab-${index}`} ref={index == 0 ? firstTab : undefined} value={`tab-${index}`} className={overviewTabClassName}>
+              [{getChainName(deployment.chainId as SUPPORTED_CHAIN)}] #{deployment.accessTimeId} Project</TabsTrigger>
+            )}
         </TabsList>
         {
           deployments.map((deployment, index) => (
@@ -102,11 +105,72 @@ export default function Overview() {
                     <TabsList className="w-full">
                       <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger>
                       <TabsTrigger value="packages">Packages</TabsTrigger>
-                      <TabsTrigger value="extra-times">Extra Times</TabsTrigger>
+                      <TabsTrigger value="extratimes">ExtraTimes</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="payment-methods">Make changes to your account here.</TabsContent>
-                    <TabsContent value="packages">Change your password here.</TabsContent>
-                    <TabsContent value="extra-times">Change your password here.</TabsContent>
+                    <TabsContent value="payment-methods">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[150px]">Currency</TableHead>
+                            <TableHead>Symbol</TableHead>
+                            <TableHead>Contract Address</TableHead>
+                            <TableHead className="text-right">Balance</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">Tether</TableCell>
+                            <TableCell>USDT</TableCell>
+                            <TableCell><CopyableAddress className="text-sm" address="0x0000000000000000000000000000000000000000" /></TableCell>
+                            <TableCell className="text-right">123123</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TabsContent>
+                    <TabsContent value="packages">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[100px]">Id</TableHead>
+                            <TableHead>Active</TableHead>
+                            <TableHead className="text-right">Time</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">0</TableCell>
+                            <TableCell>
+                              <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                              <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                            </TableCell>
+                            <TableCell className="text-right">123123</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TabsContent>
+                    <TabsContent value="extratimes">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[100px]">Id</TableHead>
+                            <TableHead>Active</TableHead>
+                            <TableHead className="text-right">Extra Percent</TableHead>
+                            <TableHead className="text-right">Time</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">0</TableCell>
+                            <TableCell>
+                              <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                              <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                            </TableCell>
+                            <TableCell className="text-right">12 %</TableCell>
+                            <TableCell className="text-right">123123</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TabsContent>
                   </Tabs>
                 </div>
               </div>
