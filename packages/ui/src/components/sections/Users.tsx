@@ -6,7 +6,7 @@ import { schema } from "@/lib/ponder";
 import { usePonderQuery } from "@ponder/react";
 
 import { shortenAddress } from "@/helpers";
-import Section from "../Section";
+import SectionTable from "../SectionTable";
 import SkeletonSection from "../skeletons/Section";
 
 type UserDto = {
@@ -71,7 +71,7 @@ export default function Users() {
     isLoading ?
       <SkeletonSection title="Users" />
       :
-      <Section<UserDto>
+      <SectionTable<UserDto>
         id={id}
         title="Users"
         table={table}

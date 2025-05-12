@@ -8,7 +8,7 @@ import { schema } from "@/lib/ponder";
 import { usePonderQuery } from "@ponder/react";
 
 import { shortenAddress } from "@/helpers";
-import Section from "../Section";
+import SectionTable from "../SectionTable";
 import SkeletonSection from "../skeletons/Section";
 
 type PurchaseDto = {
@@ -127,7 +127,7 @@ export default function Purchases() {
     isLoading ?
       <SkeletonSection title="Purchases" />
       :
-      <Section<PurchaseDto>
+      <SectionTable<PurchaseDto>
         id={id}
         title="Purchases"
         table={table}

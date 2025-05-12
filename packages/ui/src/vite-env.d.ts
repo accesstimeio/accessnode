@@ -7,8 +7,8 @@ interface ViteTypeOptions {
 }
 
 interface ImportMetaEnv {
-    readonly ACCESSNODE_TYPE: "light" | "full";
-    readonly ACCESSNODE_URL: string;
+    readonly VITE_ACCESSNODE_TYPE: "light" | "full";
+    readonly VITE_ACCESSNODE_URL: string;
     // more env variables...
 }
 

@@ -4,8 +4,9 @@ import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 
 import { Sidebar as SidebarWrapper, SidebarBody, SidebarLink } from "./ui/sidebar";
-import { SIDEBAR_LINKS } from "@/config";
+import { NODE_TYPE, SIDEBAR_LINKS } from "@/config";
 import { ModeToggle } from "./mode-toggle";
+import { cx } from "class-variance-authority";
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
@@ -21,13 +22,14 @@ export default function Sidebar() {
                 <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
                     {open ? <Logo /> : <LogoIcon />}
                     <div className="mt-8 flex flex-col gap-2">
-                        {SIDEBAR_LINKS.light.map((link, idx) => (
+                        {SIDEBAR_LINKS[NODE_TYPE].map((link, idx) => (
                             <SidebarLink key={idx} link={link} onClick={() => scrollToSection(link.label)} />
                         ))}
                     </div>
                 </div>
-                <div>
+                <div className="flex flex-col    items-center">
                     <ModeToggle />
+                    <p className={cx("text-xs font-bold", NODE_TYPE == "full" ? "text-orange-500" : "text-zinc-500")}>{NODE_TYPE.toUpperCase()}</p>
                 </div>
             </SidebarBody>
         </SidebarWrapper>

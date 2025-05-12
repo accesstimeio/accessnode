@@ -1,12 +1,13 @@
 import { ReactNode } from "react";
-import { Receipt, UserRound, FileUser } from "lucide-react";
+import { Receipt, UserRound, FileUser, BriefcaseBusiness, ChartArea, Vote } from "lucide-react";
 
-export const NODE_TYPE = import.meta.env.ACCESSNODE_TYPE ? import.meta.env.ACCESSNODE_TYPE : "light";
-export const NODE_URL = import.meta.env.ACCESSNODE_URL ? import.meta.env.ACCESSNODE_URL : "http://localhost:42069";
+export const NODE_TYPE = import.meta.env.VITE_ACCESSNODE_TYPE ? import.meta.env.VITE_ACCESSNODE_TYPE : "light";
+export const NODE_URL = import.meta.env.VITE_ACCESSNODE_URL ? import.meta.env.VITE_ACCESSNODE_URL : "http://localhost:42069";
 
 import Purchases from "@/components/sections/Purchases";
 import AccessTimeUsers from "@/components/sections/AccessTimeUsers";
 import Users from "@/components/sections/Users";
+import Overview from "@/components/sections/Overview";
 
 type SidebarLink = {
     label: string,
@@ -35,9 +36,45 @@ export const SIDEBAR_LINKS: Record<SupportNodeType, SidebarLink[]> = {
             icon: <UserRound className={sidebarIconClassNames} />,
         }
     ],
-    full: []
+    full: [
+        {
+            label: "Overview",
+            href: "#",
+            icon: <BriefcaseBusiness className={sidebarIconClassNames} />,
+        },
+        {
+            label: "Purchases",
+            href: "#",
+            icon: <Receipt className={sidebarIconClassNames} />,
+        },
+        {
+            label: "AccessTimeUsers",
+            href: "#",
+            icon: <FileUser className={sidebarIconClassNames} />,
+        },
+        {
+            label: "Users",
+            href: "#",
+            icon: <UserRound className={sidebarIconClassNames} />,
+        },
+        {
+            label: "Statistics",
+            href: "#",
+            icon: <ChartArea className={sidebarIconClassNames} />,
+        },
+        {
+            label: "Votes",
+            href: "#",
+            icon: <Vote className={sidebarIconClassNames} />,
+        },
+    ]
 };
 export const DASHBOARD_SECTIONS: Record<SupportNodeType, ReactNode[]> = {
     light: [<Purchases />, <AccessTimeUsers />, <Users />],
-    full: []
+    full: [
+        <Overview />,
+        <Purchases />,
+        <AccessTimeUsers />,
+        <Users />
+    ]
 }
