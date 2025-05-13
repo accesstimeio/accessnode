@@ -15,6 +15,7 @@ import { buttonVariants } from "../ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import usePaymentMethods from "@/hooks/usePaymentMethods";
 import usePackageDetails from "@/hooks/usePackageDetails";
+import useExtraTimeDetails from "@/hooks/useExtraTimeDetails";
 
 const overviewTabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
@@ -25,11 +26,15 @@ export default function Overview() {
     accessTimeAddress: Address;
     packages: bigint[];
     removedPackages: bigint[];
+    extraTimes: bigint[];
+    removedExtraTimes: bigint[];
   }>({
     chainId: 0,
     accessTimeAddress: zeroAddress,
     packages: [],
     removedPackages: [],
+    extraTimes: [],
+    removedExtraTimes: [],
   });
 
   const { paymentMethods } = usePaymentMethods({
@@ -42,6 +47,13 @@ export default function Overview() {
     accessTimeAddress: activeProject.accessTimeAddress,
     packages: activeProject.packages,
     removedPackages: activeProject.removedPackages,
+  });
+
+  const { extraTimes } = useExtraTimeDetails({
+    chainId: activeProject.chainId as SUPPORTED_CHAIN,
+    accessTimeAddress: activeProject.accessTimeAddress,
+    extraTimes: activeProject.extraTimes,
+    removedExtraTimes: activeProject.removedExtraTimes,
   });
 
   const { data, isSuccess } = usePonderQuery({
@@ -71,11 +83,22 @@ export default function Overview() {
         removedPackages = deployments[0].removedPackages;
       }
 
+      let extraTimes: bigint[] = [];
+      if (deployments[0].extraTimes) {
+        extraTimes = deployments[0].extraTimes;
+      }
+      let removedExtraTimes: bigint[] = [];
+      if (deployments[0].removedExtraTimes) {
+        removedExtraTimes = deployments[0].removedExtraTimes;
+      }
+
       setActiveProject({
         chainId: deployments[0].chainId,
         accessTimeAddress: deployments[0].id,
         packages,
         removedPackages,
+        extraTimes,
+        removedExtraTimes
       });
     }
   }, [deployments]);
@@ -208,7 +231,7 @@ export default function Overview() {
                                         <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
                                     }
                                   </TableCell>
-                                  <TableCell className="text-right">123123</TableCell>
+                                  <TableCell className="text-right">{_package.formattedTime}</TableCell>
                                 </TableRow>
                               ))
                               :
@@ -233,20 +256,20 @@ export default function Overview() {
                         </TableHeader>
                         <TableBody>
                           {
-                            packages.length > 0 ?
-                              packages.map((_package, index) => (
+                            extraTimes.length > 0 ?
+                              extraTimes.map((_extraTime, index) => (
                                 <TableRow key={`${activeProject.accessTimeAddress}_extratimes_${index}`}>
-                                  <TableCell className="font-medium">{_package.id}</TableCell>
+                                  <TableCell className="font-medium">{_extraTime.id}</TableCell>
                                   <TableCell>
                                     {
-                                      _package.active ?
+                                      _extraTime.active ?
                                         <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
                                         :
                                         <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
                                     }
                                   </TableCell>
-                                  <TableCell className="text-right">12 %</TableCell>
-                                  <TableCell className="text-right">123123</TableCell>
+                                  <TableCell className="text-right">{_extraTime.percent} %</TableCell>
+                                  <TableCell className="text-right">{_extraTime.formattedTime}</TableCell>
                                 </TableRow>
                               ))
                               :
