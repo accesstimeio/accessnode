@@ -8,7 +8,7 @@ export default function Section({ title, children }: { title: string, children: 
       <div className="grid gap-3 md:grid-cols-2 pb-3 border-b-1">
         <H1 content={title} />
       </div>
-      <div className="flex items-center gap-3">
+      <div className="grid gap-3">
         {children}
       </div>
     </div>

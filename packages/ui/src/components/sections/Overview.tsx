@@ -18,6 +18,7 @@ import usePackageDetails from "@/hooks/usePackageDetails";
 import useExtraTimeDetails from "@/hooks/useExtraTimeDetails";
 import { useReadContract } from "wagmi";
 import { Badge } from "../ui/badge";
+import { cx } from "class-variance-authority";
 
 const overviewTabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
@@ -162,19 +163,24 @@ export default function Overview() {
 
   return (
     <Section title="Overview">
-      <Tabs className="w-full" defaultValue="tab-1">
-        <TabsList className="relative h-auto w-fit gap-0.5 bg-transparent p-0 px-2 before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-border">
-          {deployments.map((deployment, index) =>
-            <TabsTrigger
-              key={`overview-tab-${index}`}
-              onClick={() => setProject(index)}
-              ref={index == 0 ? firstTab : undefined}
-              value={`tab-${index}`}
-              className={overviewTabClassName}
-            >
-              [{getChainName(deployment.chainId as SUPPORTED_CHAIN)}] #{deployment.accessTimeId} Project</TabsTrigger>
-          )}
-        </TabsList>
+      <Tabs className="grid" defaultValue="tab-1">
+        <div className="overflow-x-auto">
+          <TabsList className={cx(
+            "relative h-auto gap-0.5 bg-transparent p-0 px-2",
+            "before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-border"
+          )}>
+            {deployments.map((deployment, index) =>
+              <TabsTrigger
+                key={`overview-tab-${index}`}
+                onClick={() => setProject(index)}
+                ref={index == 0 ? firstTab : undefined}
+                value={`tab-${index}`}
+                className={overviewTabClassName}
+              >
+                [{getChainName(deployment.chainId as SUPPORTED_CHAIN)}] #{deployment.accessTimeId} Project</TabsTrigger>
+            )}
+          </TabsList>
+        </div>
         {
           deployments.map((deployment, index) => (
             <TabsContent key={`overview-tab-content-${index}`} value={`tab-${index}`}>
@@ -239,14 +245,14 @@ export default function Overview() {
                     </div>
                   </div>
                 </div>
-                <div>
+                <div className="overflow-x-auto">
                   <Tabs className="w-full" defaultValue="payment-methods">
                     <TabsList className="w-full">
                       <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger>
                       <TabsTrigger value="packages">Packages</TabsTrigger>
                       <TabsTrigger value="extratimes">Extra Times</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="payment-methods">
+                    <TabsContent className="overflow-x-auto" value="payment-methods">
                       <Table>
                         <TableHeader>
                           <TableRow>

@@ -27,7 +27,7 @@ export default function Sidebar() {
                         ))}
                     </div>
                 </div>
-                <div className="flex flex-col    items-center">
+                <div className="flex flex-col items-center">
                     <ModeToggle />
                     <p className={cx("text-xs font-bold", NODE_TYPE == "full" ? "text-orange-500" : "text-zinc-500")}>{NODE_TYPE.toUpperCase()}</p>
                 </div>
