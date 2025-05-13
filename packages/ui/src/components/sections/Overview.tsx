@@ -24,6 +24,7 @@ const overviewTabClassName = "overflow-hidden rounded-b-none border-x border-t b
 export default function Overview() {
   const firstTab = useRef<HTMLButtonElement>(null);
   const [activeProject, setActiveProject] = useState<{
+    id: number,
     chainId: number;
     accessTimeAddress: Address;
     packages: bigint[];
@@ -31,6 +32,7 @@ export default function Overview() {
     extraTimes: bigint[];
     removedExtraTimes: bigint[];
   }>({
+    id: 0,
     chainId: 0,
     accessTimeAddress: zeroAddress,
     packages: [],
@@ -105,6 +107,22 @@ export default function Overview() {
     return activeModules;
   }, [deploymentDetail, deploymentDetailSuccess]);
 
+  const projectDetails = useMemo(() => {
+    if (!deploymentDetail || !deploymentDetailSuccess || deploymentDetail[0] == false) {
+      return {
+        name: `#${activeProject.id} Project`,
+        description: "-",
+        website: "-"
+      };
+    }
+
+    return {
+      name: deploymentDetail[4],
+      description: deploymentDetail[5],
+      website: deploymentDetail[6]
+    };
+  }, [activeProject, deploymentDetail, deploymentDetailSuccess]);
+
   const setProject = useCallback((index: number) => {
     let packages: bigint[] = [];
     if (deployments[index].packages) {
@@ -125,6 +143,7 @@ export default function Overview() {
     }
 
     setActiveProject({
+      id: index,
       chainId: deployments[index].chainId,
       accessTimeAddress: deployments[index].id,
       packages,
@@ -163,15 +182,15 @@ export default function Overview() {
                 <div className="grid gap-3">
                   <div>
                     <Label>Project Name</Label>
-                    <p>#{deployment.accessTimeId} Project</p>
+                    <p>{projectDetails.name}</p>
                   </div>
                   <div>
                     <Label>Description</Label>
-                    <p>example description</p>
+                    <p>{projectDetails.description}</p>
                   </div>
                   <div>
                     <Label>Website</Label>
-                    <p>fewfwe</p>
+                    <p>{projectDetails.website}</p>
                   </div>
                   <div>
                     <Label>Contract Address</Label>
