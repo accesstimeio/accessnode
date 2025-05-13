@@ -14,19 +14,34 @@ import CopyableAddress from "../CopyableAddress";
 import { buttonVariants } from "../ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import usePaymentMethods from "@/hooks/usePaymentMethods";
+import usePackageDetails from "@/hooks/usePackageDetails";
 
 const overviewTabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
 export default function Overview() {
   const firstTab = useRef<HTMLButtonElement>(null);
-  const [activeProject, setActiveProject] = useState<{ chainId: number, accessTimeAddress: Address }>({
+  const [activeProject, setActiveProject] = useState<{
+    chainId: number;
+    accessTimeAddress: Address;
+    packages: bigint[];
+    removedPackages: bigint[];
+  }>({
     chainId: 0,
-    accessTimeAddress: zeroAddress
+    accessTimeAddress: zeroAddress,
+    packages: [],
+    removedPackages: [],
   });
 
   const { paymentMethods } = usePaymentMethods({
     chainId: activeProject.chainId as SUPPORTED_CHAIN,
     accessTimeAddress: activeProject.accessTimeAddress
+  });
+
+  const { packages } = usePackageDetails({
+    chainId: activeProject.chainId as SUPPORTED_CHAIN,
+    accessTimeAddress: activeProject.accessTimeAddress,
+    packages: activeProject.packages,
+    removedPackages: activeProject.removedPackages,
   });
 
   const { data, isSuccess } = usePonderQuery({
@@ -47,9 +62,20 @@ export default function Overview() {
   useEffect(() => {
     if (firstTab.current && deployments.length > 0) {
       firstTab.current.focus();
+      let packages: bigint[] = [];
+      if (deployments[0].packages) {
+        packages = deployments[0].packages;
+      }
+      let removedPackages: bigint[] = [];
+      if (deployments[0].removedPackages) {
+        removedPackages = deployments[0].removedPackages;
+      }
+
       setActiveProject({
         chainId: deployments[0].chainId,
         accessTimeAddress: deployments[0].id,
+        packages,
+        removedPackages,
       });
     }
   }, [deployments]);
@@ -68,7 +94,7 @@ export default function Overview() {
               className={overviewTabClassName}
             >
               [{getChainName(deployment.chainId as SUPPORTED_CHAIN)}] #{deployment.accessTimeId} Project</TabsTrigger>
-            )}
+          )}
         </TabsList>
         {
           deployments.map((deployment, index) => (
@@ -139,14 +165,23 @@ export default function Overview() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {paymentMethods.map((paymentMethod, index) => (
-                            <TableRow key={`${activeProject.accessTimeAddress}_paymentMethod_${index}`}>
-                              <TableCell className="font-medium">{paymentMethod.name}</TableCell>
-                              <TableCell>{paymentMethod.symbol}</TableCell>
-                              <TableCell><CopyableAddress className="text-sm" address={paymentMethod.address} /></TableCell>
-                              <TableCell className="text-right">{paymentMethod.balance}</TableCell>
-                            </TableRow>
-                          ))}
+                          {
+                            paymentMethods.length > 0 ?
+                              paymentMethods.map((paymentMethod, index) => (
+                                <TableRow key={`${activeProject.accessTimeAddress}_paymentMethod_${index}`}>
+                                  <TableCell className="font-medium">{paymentMethod.name}</TableCell>
+                                  <TableCell>{paymentMethod.symbol}</TableCell>
+                                  <TableCell><CopyableAddress className="text-sm" address={paymentMethod.address} /></TableCell>
+                                  <TableCell className="text-right">{paymentMethod.balance}</TableCell>
+                                </TableRow>
+                              ))
+                              :
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center">
+                                  No results.
+                                </TableCell>
+                              </TableRow>
+                          }
                         </TableBody>
                       </Table>
                     </TabsContent>
@@ -160,14 +195,29 @@ export default function Overview() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          <TableRow>
-                            <TableCell className="font-medium">0</TableCell>
-                            <TableCell>
-                              <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-                              <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-                            </TableCell>
-                            <TableCell className="text-right">123123</TableCell>
-                          </TableRow>
+                          {
+                            packages.length > 0 ?
+                              packages.map((_package, index) => (
+                                <TableRow key={`${activeProject.accessTimeAddress}_package_${index}`}>
+                                  <TableCell className="font-medium">{_package.id}</TableCell>
+                                  <TableCell>
+                                    {
+                                      _package.active ?
+                                        <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                        :
+                                        <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                    }
+                                  </TableCell>
+                                  <TableCell className="text-right">123123</TableCell>
+                                </TableRow>
+                              ))
+                              :
+                              <TableRow>
+                                <TableCell colSpan={3} className="text-center">
+                                  No results.
+                                </TableCell>
+                              </TableRow>
+                          }
                         </TableBody>
                       </Table>
                     </TabsContent>
@@ -182,15 +232,30 @@ export default function Overview() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          <TableRow>
-                            <TableCell className="font-medium">0</TableCell>
-                            <TableCell>
-                              <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-                              <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-                            </TableCell>
-                            <TableCell className="text-right">12 %</TableCell>
-                            <TableCell className="text-right">123123</TableCell>
-                          </TableRow>
+                          {
+                            packages.length > 0 ?
+                              packages.map((_package, index) => (
+                                <TableRow key={`${activeProject.accessTimeAddress}_extratimes_${index}`}>
+                                  <TableCell className="font-medium">{_package.id}</TableCell>
+                                  <TableCell>
+                                    {
+                                      _package.active ?
+                                        <Check className="text-green-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                        :
+                                        <X className="text-red-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+                                    }
+                                  </TableCell>
+                                  <TableCell className="text-right">12 %</TableCell>
+                                  <TableCell className="text-right">123123</TableCell>
+                                </TableRow>
+                              ))
+                              :
+                              <TableRow>
+                                <TableCell colSpan={3} className="text-center">
+                                  No results.
+                                </TableCell>
+                              </TableRow>
+                          }
                         </TableBody>
                       </Table>
                     </TabsContent>
