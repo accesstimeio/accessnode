@@ -1,11 +1,10 @@
 "use client";
 import { ColumnFiltersState, createColumnHelper, getCoreRowModel, getFacetedUniqueValues, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable, VisibilityState } from "@tanstack/react-table";
 import { useId, useMemo, useState } from "react";
-import { Address } from "ox/Address";
-import { Hex } from "ox/Hex";
 import moment from "moment";
 import { schema } from "@/lib/ponder";
 import { usePonderQuery } from "@ponder/react";
+import { Address, Hex } from "viem";
 
 import { shortenAddress } from "@/helpers";
 import SectionTable from "../SectionTable";

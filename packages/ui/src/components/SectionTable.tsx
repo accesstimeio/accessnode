@@ -5,7 +5,7 @@ import { Column, flexRender, Table as TableType } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { Filter } from "lucide-react";
-import { validate } from "ox/Address"
+import { isAddress } from "viem";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -153,7 +153,7 @@ export default function SectionTable<T>({
                           htmlFor={`${id}-${filter.id}-label-${i}`}
                           className="flex grow justify-between gap-2 font-normal"
                         >
-                          {validate(value, { strict: true }) ? shortenAddress(value) : value}{" "}
+                          {isAddress(value, { strict: true }) ? shortenAddress(value) : value}{" "}
                           <span className="ms-2 text-xs text-muted-foreground">
                             {columnDataCount(filter.id).get(value)}
                           </span>
