@@ -2,7 +2,7 @@
 // tab-credits: https://21st.dev/originui/tabs/file-tabs
 import { usePonderQuery } from "@ponder/react";
 import { Check, CornerDownRight, ExternalLink, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chain, Contract, Dashboard, getChainName, getFactoryAddress, Module, SUPPORTED_CHAIN } from "@accesstimeio/accesstime-common"
 import { Address, zeroAddress } from "viem";
 
@@ -76,7 +76,7 @@ export default function Overview() {
   const {
     data: deploymentDetail,
     isSuccess: deploymentDetailSuccess,
-    isLoading: deploymentDetailLoading
+    // isLoading: deploymentDetailLoading
   } = useReadContract({
     abi: Contract.abis.factory,
     functionName: "deploymentDetails",
@@ -94,46 +94,50 @@ export default function Overview() {
     const packageModule = Dashboard.modules.find(module => module.type == "package");
     const activeModules: Module[] = [];
 
-    if (deploymentDetail[2] == true && extraTimeModule){
+    if (deploymentDetail[2] == true && extraTimeModule) {
       activeModules.push(extraTimeModule);
     }
 
-    if (deploymentDetail[3] == true && packageModule){
+    if (deploymentDetail[3] == true && packageModule) {
       activeModules.push(packageModule);
     }
 
     return activeModules;
   }, [deploymentDetail, deploymentDetailSuccess]);
 
+  const setProject = useCallback((index: number) => {
+    let packages: bigint[] = [];
+    if (deployments[index].packages) {
+      packages = deployments[index].packages;
+    }
+    let removedPackages: bigint[] = [];
+    if (deployments[index].removedPackages) {
+      removedPackages = deployments[index].removedPackages;
+    }
+
+    let extraTimes: bigint[] = [];
+    if (deployments[index].extraTimes) {
+      extraTimes = deployments[index].extraTimes;
+    }
+    let removedExtraTimes: bigint[] = [];
+    if (deployments[index].removedExtraTimes) {
+      removedExtraTimes = deployments[index].removedExtraTimes;
+    }
+
+    setActiveProject({
+      chainId: deployments[index].chainId,
+      accessTimeAddress: deployments[index].id,
+      packages,
+      removedPackages,
+      extraTimes,
+      removedExtraTimes
+    });
+  }, [deployments]);
+
   useEffect(() => {
     if (firstTab.current && deployments.length > 0) {
       firstTab.current.focus();
-      let packages: bigint[] = [];
-      if (deployments[0].packages) {
-        packages = deployments[0].packages;
-      }
-      let removedPackages: bigint[] = [];
-      if (deployments[0].removedPackages) {
-        removedPackages = deployments[0].removedPackages;
-      }
-
-      let extraTimes: bigint[] = [];
-      if (deployments[0].extraTimes) {
-        extraTimes = deployments[0].extraTimes;
-      }
-      let removedExtraTimes: bigint[] = [];
-      if (deployments[0].removedExtraTimes) {
-        removedExtraTimes = deployments[0].removedExtraTimes;
-      }
-
-      setActiveProject({
-        chainId: deployments[0].chainId,
-        accessTimeAddress: deployments[0].id,
-        packages,
-        removedPackages,
-        extraTimes,
-        removedExtraTimes
-      });
+      setProject(0);
     }
   }, [deployments]);
 
@@ -144,6 +148,7 @@ export default function Overview() {
           {deployments.map((deployment, index) =>
             <TabsTrigger
               key={`overview-tab-${index}`}
+              onClick={() => setProject(index)}
               ref={index == 0 ? firstTab : undefined}
               value={`tab-${index}`}
               className={overviewTabClassName}
@@ -220,7 +225,7 @@ export default function Overview() {
                     <TabsList className="w-full">
                       <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger>
                       <TabsTrigger value="packages">Packages</TabsTrigger>
-                      <TabsTrigger value="extratimes">ExtraTimes</TabsTrigger>
+                      <TabsTrigger value="extratimes">Extra Times</TabsTrigger>
                     </TabsList>
                     <TabsContent value="payment-methods">
                       <Table>

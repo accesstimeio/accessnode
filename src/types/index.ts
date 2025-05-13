@@ -45,7 +45,7 @@ type FunctionCallConfig = {
 
 export type AddressConfig = {
     /** A lowercase `0x`-prefixed Ethereum address. */
-    address?: string;
+    address?: `0x${string}` | readonly `0x${string}`[];
 };
 
 // -- Networks --
