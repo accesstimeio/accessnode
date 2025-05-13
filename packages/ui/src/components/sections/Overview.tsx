@@ -3,7 +3,7 @@
 import { usePonderQuery } from "@ponder/react";
 import { Check, CornerDownRight, ExternalLink, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Chain, getChainName, SUPPORTED_CHAIN } from "@accesstimeio/accesstime-common"
+import { Chain, Contract, Dashboard, getChainName, getFactoryAddress, Module, SUPPORTED_CHAIN } from "@accesstimeio/accesstime-common"
 import { Address, zeroAddress } from "viem";
 
 import Section from "../Section";
@@ -16,6 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import usePaymentMethods from "@/hooks/usePaymentMethods";
 import usePackageDetails from "@/hooks/usePackageDetails";
 import useExtraTimeDetails from "@/hooks/useExtraTimeDetails";
+import { useReadContract } from "wagmi";
+import { Badge } from "../ui/badge";
 
 const overviewTabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
@@ -71,6 +73,38 @@ export default function Overview() {
     return data;
   }, [isSuccess, data]);
 
+  const {
+    data: deploymentDetail,
+    isSuccess: deploymentDetailSuccess,
+    isLoading: deploymentDetailLoading
+  } = useReadContract({
+    abi: Contract.abis.factory,
+    functionName: "deploymentDetails",
+    args: [activeProject.accessTimeAddress],
+    address: getFactoryAddress(activeProject.chainId as SUPPORTED_CHAIN),
+    chainId: activeProject.chainId
+  });
+
+  const modules = useMemo(() => {
+    if (!deploymentDetail || !deploymentDetailSuccess) {
+      return [];
+    }
+
+    const extraTimeModule = Dashboard.modules.find(module => module.type == "extra");
+    const packageModule = Dashboard.modules.find(module => module.type == "package");
+    const activeModules: Module[] = [];
+
+    if (deploymentDetail[2] == true && extraTimeModule){
+      activeModules.push(extraTimeModule);
+    }
+
+    if (deploymentDetail[3] == true && packageModule){
+      activeModules.push(packageModule);
+    }
+
+    return activeModules;
+  }, [deploymentDetail, deploymentDetailSuccess]);
+
   useEffect(() => {
     if (firstTab.current && deployments.length > 0) {
       firstTab.current.focus();
@@ -102,8 +136,6 @@ export default function Overview() {
       });
     }
   }, [deployments]);
-
-  // todo: get contract details from Dashboard API
 
   return (
     <Section title="Overview">
@@ -150,6 +182,19 @@ export default function Overview() {
                         <CopyableAddress className="text-xs" address={deployment.nextOwner} />
                       </div>
                     )}
+                  </div>
+                  <div>
+                    <Label>Modules</Label>
+                    <div className="flex flex-row gap-1 pt-1">
+                      {
+                        modules.length > 0 ?
+                          modules.map((module, index) => (
+                            <Badge key={`${activeProject.accessTimeAddress}_module_${index}`}>{module.name}</Badge>
+                          ))
+                          :
+                          "-"
+                      }
+                    </div>
                   </div>
                   <div>
                     <Label>Links</Label>
