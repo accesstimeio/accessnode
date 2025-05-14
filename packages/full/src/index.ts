@@ -231,10 +231,16 @@ ponder.on("AccessTime:Purchased", async ({ event, context }) => {
     timestamp: event.block.timestamp
   });
 
-  const user = await context.db.find(userSchema, { id: event.args.user, chainId });
+  const user = await context.db.find(userSchema, { id: event.args.user });
 
   if (user == null) {
-    await context.db.insert(userSchema).values({ id: event.args.user, chainId });
+    await context.db.insert(userSchema).values({ id: event.args.user, endTime: event.block.timestamp + event.args.amount });
+  } else {
+    let startTime: bigint = event.block.timestamp > user.endTime ? event.block.timestamp : user.endTime;
+
+    await context.db.update(userSchema, { id: event.args.user }).set({
+      endTime: startTime + event.args.amount
+    });
   }
 
   if (accessTimeUser == null) {
@@ -319,10 +325,16 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
     timestamp: event.block.timestamp
   });
 
-  const user = await context.db.find(userSchema, { id: event.args.user, chainId });
+  const user = await context.db.find(userSchema, { id: event.args.user });
 
   if (user == null) {
-    await context.db.insert(userSchema).values({ id: event.args.user, chainId });
+    await context.db.insert(userSchema).values({ id: event.args.user, endTime: event.block.timestamp + event.args.amount });
+  } else {
+    let startTime: bigint = event.block.timestamp > user.endTime ? event.block.timestamp : user.endTime;
+
+    await context.db.update(userSchema, { id: event.args.user }).set({
+      endTime: startTime + event.args.amount
+    });
   }
 
   if (accessTimeUser == null) {

@@ -68,10 +68,10 @@ export const purchaseRelations = relations(purchase, ({ one }) => ({
 
 export const user = onchainTable("user", (t) => ({
   id: t.hex().notNull(),
-  chainId: t.integer().notNull(),
+  endTime: t.bigint().notNull(),
 }), (table) => ({
   pk: primaryKey({
-    columns: [table.id, table.chainId]
+    columns: [table.id]
   }),
 }));
 

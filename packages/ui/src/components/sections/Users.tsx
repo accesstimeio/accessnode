@@ -8,10 +8,11 @@ import { Address } from "viem";
 import { shortenAddress } from "@/helpers";
 import SectionTable from "../SectionTable";
 import SkeletonSection from "../skeletons/Section";
+import moment from "moment";
 
 type UserDto = {
   id: Address;
-  chainId: number;
+  endTime: bigint;
 }
 
 const columnHelper = createColumnHelper<UserDto>();
@@ -39,8 +40,9 @@ export default function Users() {
         header: 'Wallet Address',
         cell: ({ getValue }) => shortenAddress(getValue()),
       }),
-      columnHelper.accessor('chainId', {
-        header: 'Chain Id',
+      columnHelper.accessor('endTime', {
+        header: 'Subscription End',
+        cell: ({ getValue }) => moment.unix(Number(getValue())).fromNow(),
       }),
     ],
     []
@@ -77,7 +79,7 @@ export default function Users() {
         table={table}
         tableColumns={tableColumns}
         filters={[
-            table.getColumn("chainId")!
+          table.getColumn("chainId")!
         ]}
         filterInputs={[
           table.getColumn("id")!

@@ -18,7 +18,7 @@ type SidebarLink = {
 };
 type SupportNodeType = "light" | "full";
 const sidebarIconClassNames = "text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0";
-export const tabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
+export const tabClassName = "cursor-pointer overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
 export const SUPPORTED_NODE_TYPES: SupportNodeType[] = ["light", "full"];
 export const SIDEBAR_LINKS: Record<SupportNodeType, SidebarLink[]> = {
