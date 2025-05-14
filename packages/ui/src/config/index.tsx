@@ -8,6 +8,8 @@ import Purchases from "@/components/sections/Purchases";
 import AccessTimeUsers from "@/components/sections/AccessTimeUsers";
 import Users from "@/components/sections/Users";
 import Overview from "@/components/sections/Overview";
+import Votes from "@/components/sections/Votes";
+import Statistics from "@/components/sections/Statistics";
 
 type SidebarLink = {
     label: string,
@@ -16,6 +18,7 @@ type SidebarLink = {
 };
 type SupportNodeType = "light" | "full";
 const sidebarIconClassNames = "text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0";
+export const tabClassName = "overflow-hidden rounded-b-none border-x border-t border-border bg-muted py-2 data-[state=active]:z-10 data-[state=active]:shadow-none";
 
 export const SUPPORTED_NODE_TYPES: SupportNodeType[] = ["light", "full"];
 export const SIDEBAR_LINKS: Record<SupportNodeType, SidebarLink[]> = {
@@ -75,6 +78,8 @@ export const DASHBOARD_SECTIONS: Record<SupportNodeType, ReactNode[]> = {
         <Overview />,
         <Purchases />,
         <AccessTimeUsers />,
-        <Users />
+        <Users />,
+        <Statistics />,
+        <Votes />
     ]
 }
