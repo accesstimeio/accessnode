@@ -269,7 +269,7 @@ function OverviewContent() {
 
 export default function Overview() {
   return (
-    <SectionTabProjectProvider title="Statistics">
+    <SectionTabProjectProvider title="Overview">
       <OverviewContent />
     </SectionTabProjectProvider>
   );
