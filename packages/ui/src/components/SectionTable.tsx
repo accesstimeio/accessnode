@@ -2,23 +2,24 @@
 // credits: https://21st.dev/originui/table/example-of-a-more-complex-table-made-with-tan-stack-table
 import { ChevronDown, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ChevronUp, CircleX, Columns3, ExternalLink, ListFilter } from "lucide-react";
 import { Column, flexRender, Table as TableType } from "@tanstack/react-table";
-import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { Filter } from "lucide-react";
 import { isAddress } from "viem";
 
+import { shortenAddress } from "@/helpers";
+import { NODE_URL } from "@/config";
+import { cn } from "@/lib/utils";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Button, buttonVariants } from "./ui/button";
-import H1 from "./ui/typography/h1";
 import { Pagination, PaginationContent, PaginationItem } from "./ui/pagination";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Checkbox } from "./ui/checkbox";
-import { shortenAddress } from "@/helpers";
-import { NODE_URL } from "@/config";
 import { Input } from "./ui/input";
+import Section from "./Section";
 
 export default function SectionTable<T>({
   id,
@@ -73,18 +74,15 @@ export default function SectionTable<T>({
   }, []);
 
   return (
-    <div id={`section_${title.toLowerCase().split(" ").join()}`} className="grid gap-3 my-3">
-      <div className="grid gap-3 md:grid-cols-2 pb-3 border-b-1">
-        <H1 content={title} />
-        <div className="flex flex-col items-end">
-          <a href={`${NODE_URL}/graphql`} target="_blank" className={buttonVariants()}>
-            Try in GraphQL <ExternalLink />
-          </a>
-        </div>
-      </div>
+    <Section
+      title={title} navButton={(
+        <a href={`${NODE_URL}/graphql`} target="_blank" className={buttonVariants()}>
+          Try in GraphQL <ExternalLink />
+        </a>
+      )}>
       <div className="flex items-center gap-3">
 
-      {
+        {
           filterInputs?.map((filter, index) => (
             filter &&
             <div key={`${id}-filterInput-${index}`} className="relative">
@@ -115,7 +113,7 @@ export default function SectionTable<T>({
               )}
             </div>
           ))
-      }
+        }
       </div>
       <div className="flex items-center gap-3 overflow-y-auto">
         {
@@ -382,6 +380,6 @@ export default function SectionTable<T>({
           </Pagination>
         </div>
       </div>
-    </div>
+    </Section>
   );
 }

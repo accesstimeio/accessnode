@@ -3,10 +3,11 @@
 import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 
-import { Sidebar as SidebarWrapper, SidebarBody, SidebarLink } from "./ui/sidebar";
 import { NODE_TYPE, SIDEBAR_LINKS } from "@/config";
+import { cn } from "@/lib/utils";
+
+import { Sidebar as SidebarWrapper, SidebarBody, SidebarLink } from "./ui/sidebar";
 import { ModeToggle } from "./mode-toggle";
-import { cx } from "class-variance-authority";
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function Sidebar() {
         const element = document.getElementById(`section_${section.toLowerCase().split(" ").join()}`);
         element?.scrollIntoView({
             behavior: 'smooth'
-        }); 
+        });
     }, []);
     return (
         <SidebarWrapper open={open} setOpen={setOpen}>
@@ -29,7 +30,7 @@ export default function Sidebar() {
                 </div>
                 <div className="flex flex-col items-center">
                     <ModeToggle />
-                    <p className={cx("text-xs font-bold", NODE_TYPE == "full" ? "text-orange-500" : "text-zinc-500")}>{NODE_TYPE.toUpperCase()}</p>
+                    <p className={cn("text-xs font-bold", NODE_TYPE == "full" ? "text-orange-500" : "text-zinc-500")}>{NODE_TYPE.toUpperCase()}</p>
                 </div>
             </SidebarBody>
         </SidebarWrapper>

@@ -3,14 +3,14 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import { Address, zeroAddress } from "viem";
 import { usePonderQuery } from "@ponder/react";
 import { getChainName, SUPPORTED_CHAIN } from "@accesstimeio/accesstime-common";
-import { cx } from "class-variance-authority";
 
 import { tabClassName } from "@/config";
+import { cn } from "@/lib/utils";
 
-import H1 from "./ui/typography/h1";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 import { accessTime } from "../../../full/ponder.schema";
+import Section from "./Section";
 
 type ActiveProject = {
   id: number,
@@ -132,39 +132,34 @@ export function SectionTabProjectProvider({ title, children }: { title: string, 
 
   return (
     <TabProjectProviderContext.Provider value={{ activeProject }}>
-      <div id={`section_${title.toLowerCase().split(" ").join()}`} className="grid gap-3 my-3">
-        <div className="grid gap-3 md:grid-cols-2 pb-3 border-b-1">
-          <H1 content={title} />
-        </div>
-        <div className="grid gap-3">
-          <Tabs className="grid" defaultValue="tab-1">
-            <div className="overflow-x-auto">
-              <TabsList className={cx(
-                "relative h-auto gap-0.5 bg-transparent p-0 px-2",
-                "before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-border"
-              )}>
-                {deployments.map((deployment, index) =>
-                  <TabsTrigger
-                    key={`overview-tab-${index}`}
-                    onClick={() => setProject(index)}
-                    ref={index == 0 ? firstTab : undefined}
-                    value={`tab-${index}`}
-                    className={tabClassName}
-                  >
-                    [{getChainName(deployment.chainId as SUPPORTED_CHAIN)}] #{deployment.accessTimeId} Project</TabsTrigger>
-                )}
-              </TabsList>
-            </div>
-            {
-              deployments.map((_deployment, index) => (
-                <TabsContent key={`overview-tab-content-${index}`} value={`tab-${index}`}>
-                  {children}
-                </TabsContent>
-              ))
-            }
-          </Tabs>
-        </div>
-      </div>
+      <Section title={title}>
+        <Tabs className="grid" defaultValue="tab-1">
+          <div className="overflow-x-auto">
+            <TabsList className={cn(
+              "relative h-auto gap-0.5 bg-transparent p-0 px-2",
+              "before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-border"
+            )}>
+              {deployments.map((deployment, index) =>
+                <TabsTrigger
+                  key={`overview-tab-${index}`}
+                  onClick={() => setProject(index)}
+                  ref={index == 0 ? firstTab : undefined}
+                  value={`tab-${index}`}
+                  className={tabClassName}
+                >
+                  [{getChainName(deployment.chainId as SUPPORTED_CHAIN)}] #{deployment.accessTimeId} Project</TabsTrigger>
+              )}
+            </TabsList>
+          </div>
+          {
+            deployments.map((_deployment, index) => (
+              <TabsContent key={`overview-tab-content-${index}`} value={`tab-${index}`}>
+                {children}
+              </TabsContent>
+            ))
+          }
+        </Tabs>
+      </Section>
     </TabProjectProviderContext.Provider>
   );
 }
