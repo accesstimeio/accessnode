@@ -3,11 +3,16 @@ import {
   accessTime as accessTimeSchema,
   accessTimeUser as accessTimeUserSchema,
   purchase as purchaseSchema,
-  user as userSchema
+  user as userSchema,
+  accessVote as accessVoteSchema,
+  vote as voteSchema,
+  weeklyVote as weeklyVoteSchema,
+  statistic as statisticSchema
 } from "ponder:schema";
-import { Address, encodeAbiParameters, formatUnits, keccak256, parseAbi, parseEther, zeroAddress } from "viem";
+import { Address, encodeAbiParameters, formatUnits, Hash, keccak256, parseAbi, parseEther, zeroAddress } from "viem";
 import { AccessTimeAbi } from "../../../src/abis/AccessTimeAbi";
-import { Contract, getFactoryAddress } from "@accesstimeio/accesstime-common";
+import { Contract, getFactoryAddress, StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
+import { generateMonthlyStatisticId, generateWeeklyStatisticId, getMonthIndex, getWeekIndex } from "./helpers";
 
 ponder.on("AccessTime:OwnershipTransferStarted", async ({ event, context }) => {
   const chainId = context.network.chainId;
@@ -363,5 +368,166 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
       totalPurchasedTime: accessTimeUser.totalPurchasedTime + event.args.amount,
       usedPaymentMethods: newUsedPaymentMethods
     });
+  }
+});
+
+ponder.on("AccessVote:Voted", async ({ event, context }) => {
+  const chainId = context.network.chainId;
+  const accessTime = await context.db.find(accessTimeSchema, { id: event.args.accessTime, chainId });
+
+  if (accessTime != null && accessTime.paymentMethods != null) {
+    const accessTimeTotalVotePoint: bigint = accessTime.totalVotePoint!;
+    const accessTimeTotalVoteParticipantCount: number = accessTime.totalVoteParticipantCount!;
+
+    const accessVoteId: Hash = keccak256(encodeAbiParameters(
+      [{ type: "address" }, { type: "uint256" }],
+      [event.args.accessTime, event.args.epochWeek])
+    );
+    const voteId: Hash = keccak256(encodeAbiParameters(
+      [{ type: "address" }, { type: "address" }, { type: "uint256" }],
+      [event.args.accessTime, event.args.participant, event.args.epochWeek])
+    );
+
+    const weeklyVote = await context.db.find(weeklyVoteSchema, { id: event.args.epochWeek, chainId });
+    const accessVote = await context.db.find(accessVoteSchema, { id: accessVoteId, chainId });
+    const vote = await context.db.find(voteSchema, { id: voteId, chainId });
+
+    let weeklyVoteVotePoint: bigint = 0n;
+    let weeklyVoteParticipantCount: number = 0;
+    let weeklyVoteAccessTimes: Address[] = [];
+    let weeklyVoteAccessTimeCount: number = 0;
+    if (weeklyVote == null) {
+      await context.db.insert(weeklyVoteSchema).values({
+        id: event.args.epochWeek,
+        chainId,
+      });
+    } else {
+      weeklyVoteVotePoint = weeklyVote.votePoint!;
+      weeklyVoteParticipantCount = weeklyVote.participantCount!;
+      weeklyVoteAccessTimes = weeklyVote.accessTimes!;
+      weeklyVoteAccessTimeCount = weeklyVote.accessTimeCount!;
+    }
+
+    let accessVoteVotePoint: bigint = 0n;
+    let accessVoteParticipantCount: number = 0;
+    if (accessVote == null) {
+      await context.db.insert(accessVoteSchema).values({
+        id: accessVoteId,
+        chainId,
+        accessTimeAddress: event.args.accessTime,
+        accessTimePaymentMethods: accessTime.paymentMethods,
+        accessTimeId: accessTime.accessTimeId,
+        epochWeek: event.args.epochWeek
+      });
+    } else {
+      accessVoteVotePoint = accessVote.votePoint!;
+      accessVoteParticipantCount = accessVote.participantCount!;
+    }
+
+    if (vote == null) {
+      await context.db.insert(voteSchema).values({
+        id: voteId,
+        chainId,
+        epochWeek: event.args.epochWeek,
+        accessTime: event.args.accessTime,
+        participant: event.args.participant,
+        votePoint: event.args.star
+      });
+
+      await context.db
+        .update(accessVoteSchema, { id: accessVoteId, chainId })
+        .set({
+          votePoint: accessVoteVotePoint + event.args.star,
+          participantCount: accessVoteParticipantCount + 1
+        });
+
+      await context.db
+        .update(accessTimeSchema, { id: event.args.accessTime, chainId })
+        .set({
+          totalVotePoint: accessTimeTotalVotePoint + event.args.star,
+          totalVoteParticipantCount: accessTimeTotalVoteParticipantCount + 1
+        });
+
+      let weeklyVoteAccessTimeExist = weeklyVoteAccessTimes
+        .find((address) => address.toLowerCase() == event.args.accessTime.toLowerCase());
+
+      if (!weeklyVoteAccessTimeExist) {
+        weeklyVoteAccessTimes.push(event.args.accessTime);
+
+        await context.db
+          .update(weeklyVoteSchema, { id: event.args.epochWeek, chainId })
+          .set({
+            accessTimes: weeklyVoteAccessTimes,
+            accessTimeCount: weeklyVoteAccessTimeCount + 1
+          });
+      }
+
+      await context.db
+        .update(weeklyVoteSchema, { id: event.args.epochWeek, chainId })
+        .set({
+          votePoint: weeklyVoteVotePoint + event.args.star,
+          participantCount: weeklyVoteParticipantCount + 1
+        });
+
+      const statisticValue = 1n;
+      const statisticInternalTypes = [StatisticVoteType.COMPANY, StatisticVoteType.PROJECT];
+      const statisticAddresses = [zeroAddress, event.args.accessTime];
+      for (let i = 0; i < statisticInternalTypes.length; i++) {
+        const statisticInternalType = statisticInternalTypes[i];
+        const statisticAddress = statisticAddresses[i];
+
+        if (!statisticInternalType || !statisticAddress) {
+          continue;
+        }
+
+        const statisticWeeklyId = generateWeeklyStatisticId(
+          event.block.timestamp,
+          BigInt(chainId),
+          StatisticType.VOTE,
+          statisticInternalType,
+          statisticAddress
+        );
+        const statisticMonthlyId = generateMonthlyStatisticId(
+          event.block.timestamp,
+          BigInt(chainId),
+          StatisticType.VOTE,
+          statisticInternalType,
+          statisticAddress
+        );
+  
+        const statisticWeekly = await context.db.find(statisticSchema, { id: statisticWeeklyId, chainId });
+        const statisticMonthly = await context.db.find(statisticSchema, { id: statisticMonthlyId, chainId });
+  
+        if (statisticWeekly == null) {
+          await context.db.insert(statisticSchema).values({
+            id: statisticWeeklyId,
+            chainId,
+            value: statisticValue,
+            timeIndex: getWeekIndex(event.block.timestamp),
+            timeGap: BigInt(StatisticTimeGap.WEEK),
+            type: StatisticType.VOTE,
+            internalType: statisticInternalType,
+            address: statisticAddress
+          });
+        } else {
+          await context.db.update(statisticSchema, { id: statisticWeeklyId, chainId }).set({ value: statisticWeekly.value + statisticValue });
+        }
+  
+        if (statisticMonthly == null) {
+          await context.db.insert(statisticSchema).values({
+            id: statisticMonthlyId,
+            chainId,
+            value: statisticValue,
+            timeIndex: getMonthIndex(event.block.timestamp),
+            timeGap: BigInt(StatisticTimeGap.MONTH),
+            type: StatisticType.VOTE,
+            internalType: statisticInternalType,
+            address: statisticAddress
+          });
+        } else {
+          await context.db.update(statisticSchema, { id: statisticMonthlyId, chainId }).set({ value: statisticMonthly.value + statisticValue });
+        }
+      }
+    }
   }
 });
