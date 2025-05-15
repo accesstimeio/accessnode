@@ -1,12 +1,20 @@
 import { createConfig } from "ponder";
-import nodeConfig from "../../node.config";
-import { AccessTimeAbi } from "../../src/abis/AccessTimeAbi";
+import { Abi } from "viem";
 
-const fullContracts = Object.fromEntries(
-  Object.entries(nodeConfig.contracts).map(([name, contract]) => {
-    return [name, { ...contract, abi: AccessTimeAbi }];
-  })
-);
+import { AccessTimeAbi } from "../../src/abis/AccessTimeAbi";
+import { NodeContractConfig } from "../../src/types";
+import nodeConfig from "../../node.config";
+
+type ContractWithAbi<A extends Abi> = {
+  abi: A;
+} & NodeContractConfig<typeof nodeConfig.networks>;
+
+const fullContracts = {
+  AccessTime: {
+    ...nodeConfig.contracts.AccessTime,
+    abi: AccessTimeAbi,
+  }
+} satisfies Record<string, ContractWithAbi<Abi>>;
 
 export default createConfig({
   ...nodeConfig,
