@@ -1,13 +1,15 @@
 "use client";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePonderQuery } from "@ponder/react";
 
 import { SectionTabProjectProvider, useTabProject } from "../SectionTabProjectProvider";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
-import { accessTime } from "../../../../full/ponder.schema";
+import { statistic } from "../../../../full/ponder.schema";
+import { and, eq } from "@ponder/client";
+import { StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
 
 const chartConfig = {
   views: {
@@ -30,22 +32,20 @@ function VotesContent() {
 
   const { activeProject } = useTabProject();
 
-  // const { data, isSuccess } = usePonderQuery({
-  //   queryFn: (db) =>
-  //     db
-  //       .select({
-  //         owner: accessTime.owner,
-  //         nextOwner: accessTime.nextOwner,
-  //         chainId: accessTime.chainId,
-  //         accessTimeId: accessTime.accessTimeId,
-  //         accessTimeAddress: accessTime.id,
-  //         packages: accessTime.packages,
-  //         removedPackages: accessTime.removedPackages,
-  //         extraTimes: accessTime.extraTimes,
-  //         removedExtraTimes: accessTime.removedExtraTimes,
-  //       })
-  //       .from(accessTime)
-  // });
+  const { data, isSuccess, refetch } = usePonderQuery({
+    enabled: false,
+    queryFn: (db) =>
+      db
+        .select()
+        .from(statistic)
+        .where(and(
+          eq(statistic.chainId, activeProject.chainId),
+          eq(statistic.address, activeProject.accessTimeAddress),
+          eq(statistic.type, StatisticType.VOTE),
+          eq(statistic.internalType, StatisticVoteType.PROJECT),
+          eq(statistic.timeGap, BigInt(StatisticTimeGap.WEEK)),
+        ))
+  });
 
   const total = useMemo(
     () => ({
@@ -54,6 +54,10 @@ function VotesContent() {
     }),
     [],
   );
+  
+  useEffect(() => {
+    refetch();
+  }, [activeProject.accessTimeAddress]);
 
   return (
     <Card className="p-0 m-0 border-0 shadow-none">
