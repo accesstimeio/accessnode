@@ -2,7 +2,7 @@ import { Bar, Area, BarChart, CartesianGrid, XAxis, AreaChart } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 
-export default function BarCharts({
+export default function Charts({
   type,
   title,
   description,
@@ -106,6 +106,12 @@ export default function BarCharts({
                     right: 0,
                   }}
                 >
+                  <defs>
+                    <linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={`var(--color-${activeChart})`} stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor={`var(--color-${activeChart})`} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="date"
@@ -136,7 +142,7 @@ export default function BarCharts({
                       />
                     }
                   />
-                  <Area dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+                  <Area dataKey={activeChart} stroke={`var(--color-${activeChart})`} fill={`url(#colorArea)`} />
                 </AreaChart>
               )
           }

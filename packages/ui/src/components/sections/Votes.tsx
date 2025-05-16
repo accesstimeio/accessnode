@@ -24,7 +24,7 @@ const chartConfig = {
   },
   userCount: {
     label: "Voter Count",
-    color: "var(--color-red-500)",
+    color: "var(--color-blue-500)",
   },
 } satisfies ChartConfig;
 
