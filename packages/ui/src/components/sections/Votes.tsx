@@ -2,14 +2,16 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { useEffect, useMemo, useState } from "react";
 import { usePonderQuery } from "@ponder/react";
+import { and, desc, eq } from "@ponder/client";
+import { StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
+
+import { Statistic } from "@/helpers";
 
 import { SectionTabProjectProvider, useTabProject } from "../SectionTabProjectProvider";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
-import { statistic } from "../../../../full/ponder.schema";
-import { and, eq } from "@ponder/client";
-import { StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
+import { statistic, accessVote } from "../../../../full/ponder.schema";
 
 const chartConfig = {
   views: {
@@ -25,39 +27,95 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const chartData = [{ date: "2024-04-01", point: 222, userCount: 150 }];
+const timeTick = 48;
 
 function VotesContent() {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("point");
+  const [activeTimeGap, setActiveTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH);
 
   const { activeProject } = useTabProject();
 
-  const { data, isSuccess, refetch } = usePonderQuery({
+  const userCountTimeTick = useMemo(() =>
+    activeTimeGap == StatisticTimeGap.MONTH ? timeTick / 4 : timeTick, [activeTimeGap]);
+
+  const { data: userCount, isSuccess: userCountSuccess, refetch: userCountRefetch } = usePonderQuery({
     enabled: false,
     queryFn: (db) =>
       db
-        .select()
+        .select({
+          timeIndex: statistic.timeIndex,
+          value: statistic.value,
+        })
         .from(statistic)
+        .limit(userCountTimeTick)
+        .orderBy(desc(statistic.timeIndex))
         .where(and(
           eq(statistic.chainId, activeProject.chainId),
           eq(statistic.address, activeProject.accessTimeAddress),
           eq(statistic.type, StatisticType.VOTE),
           eq(statistic.internalType, StatisticVoteType.PROJECT),
-          eq(statistic.timeGap, BigInt(StatisticTimeGap.WEEK)),
+          eq(statistic.timeGap, BigInt(activeTimeGap)),
         ))
   });
 
+  const { data: totalPoint, isSuccess: totalPointSuccess, refetch: totalPointRefetch } = usePonderQuery({
+    enabled: false,
+    queryFn: (db) =>
+      db
+        .select({
+          epochWeek: accessVote.epochWeek,
+          votePoint: accessVote.votePoint,
+        })
+        .from(accessVote)
+        .limit(timeTick)
+        .orderBy(desc(accessVote.epochWeek))
+        .where(and(
+          eq(accessVote.chainId, activeProject.chainId),
+          eq(accessVote.accessTimeAddress, activeProject.accessTimeAddress),
+        ))
+  });
+
+  const ticks = useMemo(() => {
+    if (!userCount || !userCountSuccess || !totalPoint || !totalPointSuccess) {
+      return [];
+    }
+
+    const formattedTotalPoint = totalPoint.map(_totalPoint => ({
+      timeIndex: _totalPoint.epochWeek,
+      value: _totalPoint.votePoint ? _totalPoint.votePoint : 0n
+    }));
+
+    const filledUserCount = Statistic.fillIndexGap(StatisticType.VOTE, activeTimeGap, userCount, userCountTimeTick);
+    let filledTotalPoint = Statistic.fillIndexGap(StatisticType.VOTE, StatisticTimeGap.WEEK, formattedTotalPoint, timeTick);
+
+    if (activeTimeGap == StatisticTimeGap.MONTH) {
+      filledTotalPoint = Statistic.convertToByMonthly(filledTotalPoint);
+    }
+    
+    const mergedData = Statistic.mergeAB(filledUserCount, filledTotalPoint);
+
+    return Array.from(mergedData.entries())
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([timeIndex, { a = 0n, b = 0n }]) => ({
+        date: Statistic.formatUnixEpoch(timeIndex, activeTimeGap),
+        userCount: Number(a),
+        point: Number(b),
+      }))
+  }, [userCount, userCountSuccess, totalPoint, totalPointSuccess, activeTimeGap, userCountTimeTick]);
+
+
   const total = useMemo(
     () => ({
-      point: chartData.reduce((acc, curr) => acc + curr.point, 0),
-      userCount: chartData.reduce((acc, curr) => acc + curr.userCount, 0),
+      point: ticks.reduce((acc, curr) => acc + curr.point, 0),
+      userCount: ticks.reduce((acc, curr) => acc + curr.userCount, 0),
     }),
-    [],
+    [ticks],
   );
-  
+
   useEffect(() => {
-    refetch();
-  }, [activeProject.accessTimeAddress]);
+    userCountRefetch();
+    totalPointRefetch();
+  }, [activeProject.accessTimeAddress, activeTimeGap]);
 
   return (
     <Card className="p-0 m-0 border-0 shadow-none">
@@ -96,7 +154,7 @@ function VotesContent() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={ticks}
             margin={{
               left: 0,
               right: 0,
