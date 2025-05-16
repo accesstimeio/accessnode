@@ -11,8 +11,9 @@ import {
 } from "ponder:schema";
 import { Address, encodeAbiParameters, formatUnits, Hash, keccak256, parseAbi, parseEther, zeroAddress } from "viem";
 import { AccessTimeAbi } from "../../../src/abis/AccessTimeAbi";
-import { Contract, getFactoryAddress, StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
-import { generateMonthlyStatisticId, generateWeeklyStatisticId, getMonthIndex, getWeekIndex } from "./helpers";
+import { Contract, getFactoryAddress, StatisticIncomeType, StatisticNewUserType, StatisticSoldAccessTimeType, StatisticTimeGap, StatisticType, StatisticUserType, StatisticVoteType } from "@accesstimeio/accesstime-common";
+import { generateMonthlyIncomeStatisticId, generateMonthlyStatisticId, generateWeeklyIncomeStatisticId, generateWeeklyStatisticId, getMonthIndex, getWeekIndex } from "./helpers";
+import { and, desc, eq } from "ponder";
 
 ponder.on("AccessTime:OwnershipTransferStarted", async ({ event, context }) => {
   const chainId = context.network.chainId;
@@ -236,10 +237,236 @@ ponder.on("AccessTime:Purchased", async ({ event, context }) => {
     timestamp: event.block.timestamp
   });
 
+  // sold accesstime statistic, project
+  const stSoldAccessTimeValue = event.args.amount;
+  const stSoldAccessTimeInternalTypes = [StatisticSoldAccessTimeType.PROJECT];
+  const stSoldAccessTimeAddresses = [event.log.address];
+  for (let i = 0; i < stSoldAccessTimeInternalTypes.length; i++) {
+    const stSoldAccessTimeAddress = stSoldAccessTimeAddresses[i];
+    const stSoldAccessTimeInternalType = stSoldAccessTimeInternalTypes[i];
+
+    if (!stSoldAccessTimeInternalType || !stSoldAccessTimeAddress) {
+      continue;
+    }
+
+    const stSoldAccessTimeWeeklyId = generateWeeklyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.SOLD_ACCESSTIME,
+      stSoldAccessTimeInternalType,
+      stSoldAccessTimeAddress
+    );
+    const stSoldAccessTimeMonthlyId = generateMonthlyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.SOLD_ACCESSTIME,
+      stSoldAccessTimeInternalType,
+      stSoldAccessTimeAddress
+    );
+
+    const stSoldAccessTimeWeekly = await context.db.find(statisticSchema, { id: stSoldAccessTimeWeeklyId, chainId });
+    const stSoldAccessTimeMonthly = await context.db.find(statisticSchema, { id: stSoldAccessTimeMonthlyId, chainId });
+
+    if (stSoldAccessTimeWeekly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stSoldAccessTimeWeeklyId,
+        chainId,
+        value: stSoldAccessTimeValue,
+        timeIndex: getWeekIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.WEEK),
+        type: StatisticType.SOLD_ACCESSTIME,
+        internalType: stSoldAccessTimeInternalType,
+        address: stSoldAccessTimeAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stSoldAccessTimeWeeklyId,
+          chainId,
+        })
+        .set({
+          value: stSoldAccessTimeWeekly.value + stSoldAccessTimeValue
+        });
+    }
+
+    if (stSoldAccessTimeMonthly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stSoldAccessTimeMonthlyId,
+        chainId,
+        value: stSoldAccessTimeValue,
+        timeIndex: getMonthIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.MONTH),
+        type: StatisticType.SOLD_ACCESSTIME,
+        internalType: stSoldAccessTimeInternalType,
+        address: stSoldAccessTimeAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stSoldAccessTimeMonthlyId,
+          chainId,
+        })
+        .set({
+          value: stSoldAccessTimeMonthly.value + stSoldAccessTimeValue
+        });
+    }
+  }
+
+  // income statistics, project | cumulative projects
+  const stIncomePCInternalTypes = [StatisticIncomeType.CUMULATIVE_PROJECTS, StatisticIncomeType.PROJECT];
+  const stIncomePCAddresses = [zeroAddress, event.log.address];
+  for (let i = 0; i < stIncomePCInternalTypes.length; i++) {
+    const stIncomePCAddress = stIncomePCAddresses[i];
+    const stIncomePCInternalType = stIncomePCInternalTypes[i];
+
+    if (!stIncomePCInternalType || !stIncomePCAddress) {
+      continue;
+    }
+
+    const stIncomePCWeeklyId = generateWeeklyIncomeStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.INCOME,
+      stIncomePCInternalType,
+      stIncomePCAddress,
+      event.args.paymentToken
+    );
+    const stIncomePCMonthlyId = generateMonthlyIncomeStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.INCOME,
+      stIncomePCInternalType,
+      stIncomePCAddress,
+      event.args.paymentToken
+    );
+
+    const stIncomePCWeekly = await context.db.find(statisticSchema, { id: stIncomePCWeeklyId, chainId });
+    const stIncomePCMonthly = await context.db.find(statisticSchema, { id: stIncomePCMonthlyId, chainId });
+
+    if (stIncomePCWeekly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stIncomePCWeeklyId,
+        chainId,
+        value: paymentAmount,
+        timeIndex: getWeekIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.WEEK),
+        type: StatisticType.INCOME,
+        internalType: stIncomePCInternalType,
+        address: stIncomePCAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stIncomePCWeeklyId,
+          chainId,
+        })
+        .set({
+          value: stIncomePCWeekly.value + paymentAmount
+        });
+    }
+
+    if (stIncomePCMonthly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stIncomePCMonthlyId,
+        chainId,
+        value: paymentAmount,
+        timeIndex: getMonthIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.MONTH),
+        type: StatisticType.INCOME,
+        internalType: stIncomePCInternalType,
+        address: stIncomePCAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stIncomePCMonthlyId,
+          chainId,
+        })
+        .set({
+          value: stIncomePCMonthly.value + paymentAmount
+        });
+    }
+  }
+
   const user = await context.db.find(userSchema, { id: event.args.user });
 
   if (user == null) {
     await context.db.insert(userSchema).values({ id: event.args.user, endTime: event.block.timestamp + event.args.amount });
+
+    // new user statistic, cumulative projects
+    const stNewUserPCValue = 1n;
+    const stNewUserPCInternalTypes = [StatisticNewUserType.CUMULATIVE_PROJECTS];
+    const stNewUserPCAddresses = [zeroAddress];
+    for (let i = 0; i < stNewUserPCInternalTypes.length; i++) {
+      const stNewUserPCAddress = stNewUserPCAddresses[i];
+      const stNewUserPCInternalType = stNewUserPCInternalTypes[i];
+
+      if (!stNewUserPCInternalType || !stNewUserPCAddress) {
+        continue;
+      }
+
+      const stNewUserPCWeeklyId = generateWeeklyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+      const stNewUserPCMonthlyId = generateMonthlyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+
+      const stNewUserPCWeekly = await context.db.find(statisticSchema, { id: stNewUserPCWeeklyId, chainId });
+      const stNewUserPCMonthly = await context.db.find(statisticSchema, { id: stNewUserPCMonthlyId, chainId });
+
+      if (stNewUserPCWeekly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCWeeklyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getWeekIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.WEEK),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCWeeklyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCWeekly.value + stNewUserPCValue
+          });
+      }
+
+      if (stNewUserPCMonthly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCMonthlyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getMonthIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.MONTH),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCMonthlyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCMonthly.value + stNewUserPCValue
+          });
+      }
+    }
   } else {
     let startTime: bigint = event.block.timestamp > user.endTime ? event.block.timestamp : user.endTime;
 
@@ -258,6 +485,171 @@ ponder.on("AccessTime:Purchased", async ({ event, context }) => {
       totalPurchasedTime: event.args.amount,
       usedPaymentMethods: [event.args.paymentToken]
     });
+
+    // new user statistic, project
+    const stNewUserPCValue = 1n;
+    const stNewUserPCInternalTypes = [StatisticNewUserType.PROJECT];
+    const stNewUserPCAddresses = [event.log.address];
+    for (let i = 0; i < stNewUserPCInternalTypes.length; i++) {
+      const stNewUserPCAddress = stNewUserPCAddresses[i];
+      const stNewUserPCInternalType = stNewUserPCInternalTypes[i];
+
+      if (!stNewUserPCInternalType || !stNewUserPCAddress) {
+        continue;
+      }
+
+      const stNewUserPCWeeklyId = generateWeeklyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+      const stNewUserPCMonthlyId = generateMonthlyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+
+      const stNewUserPCWeekly = await context.db.find(statisticSchema, { id: stNewUserPCWeeklyId, chainId });
+      const stNewUserPCMonthly = await context.db.find(statisticSchema, { id: stNewUserPCMonthlyId, chainId });
+
+      if (stNewUserPCWeekly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCWeeklyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getWeekIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.WEEK),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCWeeklyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCWeekly.value + stNewUserPCValue
+          });
+      }
+
+      if (stNewUserPCMonthly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCMonthlyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getMonthIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.MONTH),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCMonthlyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCMonthly.value + stNewUserPCValue
+          });
+      }
+    }
+    // total user statistic, project
+    const stTotalUserProjectWeeklyId = generateWeeklyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.USER,
+      StatisticUserType.PROJECT,
+      event.log.address
+    );
+    const stTotalUserProjectMonthlyId = generateMonthlyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.USER,
+      StatisticUserType.PROJECT,
+      event.log.address
+    );
+
+    const stTotalUserProjectWeekly = await context.db.find(statisticSchema, { id: stTotalUserProjectWeeklyId, chainId });
+    const stTotalUserProjectMonthly = await context.db.find(statisticSchema, { id: stTotalUserProjectMonthlyId, chainId });
+
+    if (stTotalUserProjectWeekly == null) {
+      let startValue: bigint = 1n;
+      const stTotalUserProjectLastWeek = await context.db.sql.select().from(statisticSchema)
+        .where(and(
+          eq(statisticSchema.timeGap, BigInt(StatisticTimeGap.WEEK)),
+          eq(statisticSchema.internalType, StatisticUserType.PROJECT),
+          eq(statisticSchema.address, event.log.address)
+        ))
+        .orderBy(desc(statisticSchema.timeIndex))
+        .limit(1);
+
+      if (stTotalUserProjectLastWeek != null && stTotalUserProjectLastWeek[0]) {
+        startValue = stTotalUserProjectLastWeek[0].value + 1n;
+      }
+
+      await context.db.insert(statisticSchema).values({
+        id: stTotalUserProjectWeeklyId,
+        chainId,
+        value: startValue,
+        timeIndex: getWeekIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.WEEK),
+        type: StatisticType.USER,
+        internalType: StatisticUserType.PROJECT,
+        address: event.log.address
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stTotalUserProjectWeeklyId,
+          chainId,
+        })
+        .set({
+          value: stTotalUserProjectWeekly.value + 1n
+        });
+    }
+
+    if (stTotalUserProjectMonthly == null) {
+      let startValue: bigint = 1n;
+      const stTotalUserProjectLastMonth = await context.db.sql.select().from(statisticSchema)
+        .where(and(
+          eq(statisticSchema.timeGap, BigInt(StatisticTimeGap.MONTH)),
+          eq(statisticSchema.internalType, StatisticUserType.PROJECT),
+          eq(statisticSchema.address, event.log.address)
+        ))
+        .orderBy(desc(statisticSchema.timeIndex))
+        .limit(1);
+
+      if (stTotalUserProjectLastMonth != null && stTotalUserProjectLastMonth[0]) {
+        startValue = stTotalUserProjectLastMonth[0].value + 1n;
+      }
+
+      await context.db.insert(statisticSchema).values({
+        id: stTotalUserProjectMonthlyId,
+        chainId,
+        value: startValue,
+        timeIndex: getMonthIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.MONTH),
+        type: StatisticType.USER,
+        internalType: StatisticUserType.PROJECT,
+        address: event.log.address
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stTotalUserProjectMonthlyId,
+          chainId,
+        })
+        .set({
+          value: stTotalUserProjectMonthly.value + 1n
+        });
+    }
   } else {
     let startTime: bigint = event.block.timestamp > accessTimeUser.endTime ? event.block.timestamp : accessTimeUser.endTime;
     let newUsedPaymentMethods = accessTimeUser.usedPaymentMethods;
@@ -330,10 +722,235 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
     timestamp: event.block.timestamp
   });
 
+  // sold accesstime statistic, project
+  const stSoldAccessTimeValue = event.args.amount;
+  const stSoldAccessTimeInternalTypes = [StatisticSoldAccessTimeType.PROJECT];
+  const stSoldAccessTimeAddresses = [event.log.address];
+  for (let i = 0; i < stSoldAccessTimeInternalTypes.length; i++) {
+    const stSoldAccessTimeAddress = stSoldAccessTimeAddresses[i];
+    const stSoldAccessTimeInternalType = stSoldAccessTimeInternalTypes[i];
+
+    if (!stSoldAccessTimeInternalType || !stSoldAccessTimeAddress) {
+      continue;
+    }
+
+    const stSoldAccessTimeWeeklyId = generateWeeklyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.SOLD_ACCESSTIME,
+      stSoldAccessTimeInternalType,
+      stSoldAccessTimeAddress
+    );
+    const stSoldAccessTimeMonthlyId = generateMonthlyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.SOLD_ACCESSTIME,
+      stSoldAccessTimeInternalType,
+      stSoldAccessTimeAddress
+    );
+
+    const stSoldAccessTimeWeekly = await context.db.find(statisticSchema, { id: stSoldAccessTimeWeeklyId, chainId });
+    const stSoldAccessTimeMonthly = await context.db.find(statisticSchema, { id: stSoldAccessTimeMonthlyId, chainId });
+
+    if (stSoldAccessTimeWeekly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stSoldAccessTimeWeeklyId,
+        chainId,
+        value: stSoldAccessTimeValue,
+        timeIndex: getWeekIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.WEEK),
+        type: StatisticType.SOLD_ACCESSTIME,
+        internalType: stSoldAccessTimeInternalType,
+        address: stSoldAccessTimeAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stSoldAccessTimeWeeklyId, chainId
+        })
+        .set({
+          value: stSoldAccessTimeWeekly.value + stSoldAccessTimeValue
+        });
+    }
+
+    if (stSoldAccessTimeMonthly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stSoldAccessTimeMonthlyId,
+        chainId,
+        value: stSoldAccessTimeValue,
+        timeIndex: getMonthIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.MONTH),
+        type: StatisticType.SOLD_ACCESSTIME,
+        internalType: stSoldAccessTimeInternalType,
+        address: stSoldAccessTimeAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stSoldAccessTimeMonthlyId,
+          chainId,
+        })
+        .set({
+          value: stSoldAccessTimeMonthly.value + stSoldAccessTimeValue
+        });
+    }
+  }
+
+  // income statistics, project | cumulative projects
+  const stIncomePCInternalTypes = [StatisticIncomeType.CUMULATIVE_PROJECTS, StatisticIncomeType.PROJECT];
+  const stIncomePCAddresses = [zeroAddress, event.log.address];
+  for (let i = 0; i < stIncomePCInternalTypes.length; i++) {
+    const stIncomePCAddress = stIncomePCAddresses[i];
+    const stIncomePCInternalType = stIncomePCInternalTypes[i];
+
+    if (!stIncomePCInternalType || !stIncomePCAddress) {
+      continue;
+    }
+
+    const stIncomePCWeeklyId = generateWeeklyIncomeStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.INCOME,
+      stIncomePCInternalType,
+      stIncomePCAddress,
+      event.args.paymentToken
+    );
+    const stIncomePCMonthlyId = generateMonthlyIncomeStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.INCOME,
+      stIncomePCInternalType,
+      stIncomePCAddress,
+      event.args.paymentToken
+    );
+
+    const stIncomePCWeekly = await context.db.find(statisticSchema, { id: stIncomePCWeeklyId, chainId });
+    const stIncomePCMonthly = await context.db.find(statisticSchema, { id: stIncomePCMonthlyId, chainId });
+
+    if (stIncomePCWeekly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stIncomePCWeeklyId,
+        chainId,
+        value: paymentAmount,
+        timeIndex: getWeekIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.WEEK),
+        type: StatisticType.INCOME,
+        internalType: stIncomePCInternalType,
+        address: stIncomePCAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stIncomePCWeeklyId,
+          chainId,
+        })
+        .set({
+          value: stIncomePCWeekly.value + paymentAmount
+        });
+    }
+
+    if (stIncomePCMonthly == null) {
+      await context.db.insert(statisticSchema).values({
+        id: stIncomePCMonthlyId,
+        chainId,
+        value: paymentAmount,
+        timeIndex: getMonthIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.MONTH),
+        type: StatisticType.INCOME,
+        internalType: stIncomePCInternalType,
+        address: stIncomePCAddress
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stIncomePCMonthlyId,
+          chainId,
+        })
+        .set({
+          value: stIncomePCMonthly.value + paymentAmount
+        });
+    }
+  }
+
   const user = await context.db.find(userSchema, { id: event.args.user });
 
   if (user == null) {
     await context.db.insert(userSchema).values({ id: event.args.user, endTime: event.block.timestamp + event.args.amount });
+
+    // new user statistic, cumulative projects
+    const stNewUserPCValue = 1n;
+    const stNewUserPCInternalTypes = [StatisticNewUserType.CUMULATIVE_PROJECTS];
+    const stNewUserPCAddresses = [zeroAddress];
+    for (let i = 0; i < stNewUserPCInternalTypes.length; i++) {
+      const stNewUserPCAddress = stNewUserPCAddresses[i];
+      const stNewUserPCInternalType = stNewUserPCInternalTypes[i];
+
+      if (!stNewUserPCInternalType || !stNewUserPCAddress) {
+        continue;
+      }
+
+      const stNewUserPCWeeklyId = generateWeeklyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+      const stNewUserPCMonthlyId = generateMonthlyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+
+      const stNewUserPCWeekly = await context.db.find(statisticSchema, { id: stNewUserPCWeeklyId, chainId });
+      const stNewUserPCMonthly = await context.db.find(statisticSchema, { id: stNewUserPCMonthlyId, chainId });
+
+      if (stNewUserPCWeekly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCWeeklyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getWeekIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.WEEK),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCWeeklyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCWeekly.value + stNewUserPCValue
+          });
+      }
+
+      if (stNewUserPCMonthly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCMonthlyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getMonthIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.MONTH),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCMonthlyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCMonthly.value + stNewUserPCValue
+          });
+      }
+    }
   } else {
     let startTime: bigint = event.block.timestamp > user.endTime ? event.block.timestamp : user.endTime;
 
@@ -352,6 +969,171 @@ ponder.on("AccessTime:PurchasedPackage", async ({ event, context }) => {
       totalPurchasedTime: event.args.amount,
       usedPaymentMethods: [event.args.paymentToken]
     });
+
+    // new user statistic, project
+    const stNewUserPCValue = 1n;
+    const stNewUserPCInternalTypes = [StatisticNewUserType.PROJECT];
+    const stNewUserPCAddresses = [event.log.address];
+    for (let i = 0; i < stNewUserPCInternalTypes.length; i++) {
+      const stNewUserPCAddress = stNewUserPCAddresses[i];
+      const stNewUserPCInternalType = stNewUserPCInternalTypes[i];
+
+      if (!stNewUserPCInternalType || !stNewUserPCAddress) {
+        continue;
+      }
+
+      const stNewUserPCWeeklyId = generateWeeklyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+      const stNewUserPCMonthlyId = generateMonthlyStatisticId(
+        event.block.timestamp,
+        BigInt(chainId),
+        StatisticType.NEW_USER,
+        stNewUserPCInternalType,
+        stNewUserPCAddress
+      );
+
+      const stNewUserPCWeekly = await context.db.find(statisticSchema, { id: stNewUserPCWeeklyId, chainId });
+      const stNewUserPCMonthly = await context.db.find(statisticSchema, { id: stNewUserPCMonthlyId, chainId });
+
+      if (stNewUserPCWeekly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCWeeklyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getWeekIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.WEEK),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCWeeklyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCWeekly.value + stNewUserPCValue
+          });
+      }
+
+      if (stNewUserPCMonthly == null) {
+        await context.db.insert(statisticSchema).values({
+          id: stNewUserPCMonthlyId,
+          chainId,
+          value: stNewUserPCValue,
+          timeIndex: getMonthIndex(event.block.timestamp),
+          timeGap: BigInt(StatisticTimeGap.MONTH),
+          type: StatisticType.NEW_USER,
+          internalType: stNewUserPCInternalType,
+          address: stNewUserPCAddress
+        });
+      } else {
+        await context.db
+          .update(statisticSchema, {
+            id: stNewUserPCMonthlyId,
+            chainId,
+          })
+          .set({
+            value: stNewUserPCMonthly.value + stNewUserPCValue
+          });
+      }
+    }
+    // total user statistic, project
+    const stTotalUserProjectWeeklyId = generateWeeklyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.USER,
+      StatisticUserType.PROJECT,
+      event.log.address
+    );
+    const stTotalUserProjectMonthlyId = generateMonthlyStatisticId(
+      event.block.timestamp,
+      BigInt(chainId),
+      StatisticType.USER,
+      StatisticUserType.PROJECT,
+      event.log.address
+    );
+
+    const stTotalUserProjectWeekly = await context.db.find(statisticSchema, { id: stTotalUserProjectWeeklyId, chainId });
+    const stTotalUserProjectMonthly = await context.db.find(statisticSchema, { id: stTotalUserProjectMonthlyId, chainId });
+
+    if (stTotalUserProjectWeekly == null) {
+      let startValue: bigint = 1n;
+      const stTotalUserProjectLastWeek = await context.db.sql.select().from(statisticSchema)
+        .where(and(
+          eq(statisticSchema.timeGap, BigInt(StatisticTimeGap.WEEK)),
+          eq(statisticSchema.internalType, StatisticUserType.PROJECT),
+          eq(statisticSchema.address, event.log.address)
+        ))
+        .orderBy(desc(statisticSchema.timeIndex))
+        .limit(1);
+
+      if (stTotalUserProjectLastWeek != null && stTotalUserProjectLastWeek[0]) {
+        startValue = stTotalUserProjectLastWeek[0].value + 1n;
+      }
+
+      await context.db.insert(statisticSchema).values({
+        id: stTotalUserProjectWeeklyId,
+        chainId,
+        value: startValue,
+        timeIndex: getWeekIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.WEEK),
+        type: StatisticType.USER,
+        internalType: StatisticUserType.PROJECT,
+        address: event.log.address
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stTotalUserProjectWeeklyId,
+          chainId,
+        })
+        .set({
+          value: stTotalUserProjectWeekly.value + 1n
+        });
+    }
+
+    if (stTotalUserProjectMonthly == null) {
+      let startValue: bigint = 1n;
+      const stTotalUserProjectLastMonth = await context.db.sql.select().from(statisticSchema)
+        .where(and(
+          eq(statisticSchema.timeGap, BigInt(StatisticTimeGap.MONTH)),
+          eq(statisticSchema.internalType, StatisticUserType.PROJECT),
+          eq(statisticSchema.address, event.log.address)
+        ))
+        .orderBy(desc(statisticSchema.timeIndex))
+        .limit(1);
+
+      if (stTotalUserProjectLastMonth != null && stTotalUserProjectLastMonth[0]) {
+        startValue = stTotalUserProjectLastMonth[0].value + 1n;
+      }
+
+      await context.db.insert(statisticSchema).values({
+        id: stTotalUserProjectMonthlyId,
+        chainId,
+        value: startValue,
+        timeIndex: getMonthIndex(event.block.timestamp),
+        timeGap: BigInt(StatisticTimeGap.MONTH),
+        type: StatisticType.USER,
+        internalType: StatisticUserType.PROJECT,
+        address: event.log.address
+      });
+    } else {
+      await context.db
+        .update(statisticSchema, {
+          id: stTotalUserProjectMonthlyId,
+          chainId,
+        })
+        .set({
+          value: stTotalUserProjectMonthly.value + 1n
+        });
+    }
   } else {
     let startTime: bigint = event.block.timestamp > accessTimeUser.endTime ? event.block.timestamp : accessTimeUser.endTime;
     let newUsedPaymentMethods = accessTimeUser.usedPaymentMethods;
@@ -494,10 +1276,10 @@ ponder.on("AccessVote:Voted", async ({ event, context }) => {
           statisticInternalType,
           statisticAddress
         );
-  
+
         const statisticWeekly = await context.db.find(statisticSchema, { id: statisticWeeklyId, chainId });
         const statisticMonthly = await context.db.find(statisticSchema, { id: statisticMonthlyId, chainId });
-  
+
         if (statisticWeekly == null) {
           await context.db.insert(statisticSchema).values({
             id: statisticWeeklyId,
@@ -512,7 +1294,7 @@ ponder.on("AccessVote:Voted", async ({ event, context }) => {
         } else {
           await context.db.update(statisticSchema, { id: statisticWeeklyId, chainId }).set({ value: statisticWeekly.value + statisticValue });
         }
-  
+
         if (statisticMonthly == null) {
           await context.db.insert(statisticSchema).values({
             id: statisticMonthlyId,
