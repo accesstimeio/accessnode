@@ -78,9 +78,7 @@ export default function Users() {
         title="Users"
         table={table}
         tableColumns={tableColumns}
-        filters={[
-          table.getColumn("chainId")!
-        ]}
+        filters={[]}
         filterInputs={[
           table.getColumn("id")!
         ]}
