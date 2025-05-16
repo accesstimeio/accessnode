@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
+import { StatisticNewUserType, StatisticSoldAccessTimeType, StatisticTimeGap, StatisticType, StatisticUserType } from "@accesstimeio/accesstime-common";
+
 import { SectionTabProjectProvider, useTabProject } from "../SectionTabProjectProvider";
 import StatisticChart from "../StatisticChart";
-import { StatisticNewUserType, StatisticSoldAccessTimeType, StatisticTimeGap, StatisticType, StatisticUserType } from "@accesstimeio/accesstime-common";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 // total sold accessTimes
 // total user
@@ -80,10 +83,20 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
 }
 
 export default function Statistics() {
-  const [activeTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH); // todo: make changeable
+  const [activeTimeGap, setActiveTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH);
 
   return (
-    <SectionTabProjectProvider title="Statistics">
+    <SectionTabProjectProvider title="Statistics" rightSection={(
+      <div className="flex items-center space-x-2">
+        <Switch
+          className="cursor-pointer"
+          id="statistics-weekly-timegap"
+          checked={activeTimeGap == StatisticTimeGap.WEEK}
+          onCheckedChange={(checked) => checked ? setActiveTimeGap(StatisticTimeGap.WEEK) : setActiveTimeGap(StatisticTimeGap.MONTH)}
+        />
+        <Label className="cursor-pointer" htmlFor="statistics-weekly-timegap">Weekly</Label>
+      </div>
+    )}>
       <StatisticsContent activeTimeGap={activeTimeGap} />
     </SectionTabProjectProvider>
   );

@@ -1,5 +1,5 @@
 "use client";
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { ComponentProps, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Address, zeroAddress } from "viem";
 import { usePonderQuery } from "@ponder/react";
 import { getChainName, SUPPORTED_CHAIN } from "@accesstimeio/accesstime-common";
@@ -8,9 +8,9 @@ import { tabClassName } from "@/config";
 import { cn } from "@/lib/utils";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import Section from "./Section";
 
 import { accessTime } from "../../../full/ponder.schema";
-import Section from "./Section";
 
 type ActiveProject = {
   id: number,
@@ -46,7 +46,15 @@ const initialState: TabProjectProviderState = {
 
 const TabProjectProviderContext = createContext<TabProjectProviderState>(initialState)
 
-export function SectionTabProjectProvider({ title, children }: { title: string, children: ReactNode }) {
+export function SectionTabProjectProvider({
+  title,
+  children,
+  rightSection
+}: {
+  title: string;
+  children: ReactNode;
+  rightSection?: ComponentProps<typeof Section>["rightSection"];
+}) {
   const firstTab = useRef<HTMLButtonElement>(null);
   const [activeProject, setActiveProject] = useState<ActiveProject>({
     id: 0,
@@ -132,7 +140,7 @@ export function SectionTabProjectProvider({ title, children }: { title: string, 
 
   return (
     <TabProjectProviderContext.Provider value={{ activeProject }}>
-      <Section title={title}>
+      <Section title={title} rightSection={rightSection}>
         <Tabs className="grid" defaultValue="tab-1">
           <div className="overflow-x-auto">
             <TabsList className={cn(

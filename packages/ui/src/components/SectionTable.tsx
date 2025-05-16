@@ -75,7 +75,7 @@ export default function SectionTable<T>({
 
   return (
     <Section
-      title={title} navButton={(
+      title={title} rightSection={(
         <a href={`${NODE_URL}/graphql`} target="_blank" className={buttonVariants()}>
           Try in GraphQL <ExternalLink />
         </a>

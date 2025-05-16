@@ -142,7 +142,7 @@ export default function Charts({
                       />
                     }
                   />
-                  <Area dataKey={activeChart} stroke={`var(--color-${activeChart})`} fill={`url(#colorArea)`} />
+                  <Area type="monotone" dataKey={activeChart} stroke={`var(--color-${activeChart})`} fill={`url(#colorArea)`} />
                 </AreaChart>
               )
           }

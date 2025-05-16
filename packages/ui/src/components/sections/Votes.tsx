@@ -11,6 +11,8 @@ import { defaultTimeTick } from "@/config";
 import { SectionTabProjectProvider, useTabProject } from "../SectionTabProjectProvider";
 import Charts from "../Charts";
 import { ChartConfig } from "../ui/chart";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 import { statistic, accessVote } from "../../../../full/ponder.schema";
 
@@ -28,9 +30,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-function VotesContent() {
+function VotesContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap }) {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("point");
-  const [activeTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH); // todo: make changeable
 
   const { activeProject } = useTabProject();
 
@@ -131,9 +132,21 @@ function VotesContent() {
 }
 
 export default function Votes() {
+  const [activeTimeGap, setActiveTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH);
+
   return (
-    <SectionTabProjectProvider title="Votes">
-      <VotesContent />
+    <SectionTabProjectProvider title="Votes" rightSection={(
+      <div className="flex items-center space-x-2">
+        <Switch
+          className="cursor-pointer"
+          id="statistics-weekly-timegap"
+          checked={activeTimeGap == StatisticTimeGap.WEEK}
+          onCheckedChange={(checked) => checked ? setActiveTimeGap(StatisticTimeGap.WEEK) : setActiveTimeGap(StatisticTimeGap.MONTH)}
+        />
+        <Label className="cursor-pointer" htmlFor="statistics-weekly-timegap">Weekly</Label>
+      </div>
+    )}>
+      <VotesContent activeTimeGap={activeTimeGap} />
     </SectionTabProjectProvider>
   );
 }
