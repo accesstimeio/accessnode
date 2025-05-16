@@ -1,6 +1,6 @@
 import { ChartConfig } from "@/components/ui/chart";
 import { defaultTimeTick } from "@/config";
-import { StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
+import { StatisticTimeGap, StatisticType } from "@accesstimeio/accesstime-common";
 import { usePonderQuery } from "@ponder/react";
 import { ComponentProps, useEffect, useMemo, useState } from "react";
 import { statistic } from "../../../full/ponder.schema";
@@ -14,16 +14,19 @@ export default function StatisticChart({
   accessTimeAddress,
   timeGap,
   statisticType,
+  statisticInternalType,
   title,
   description,
   chartConfig,
   type,
-  extraDataCalculation
+  extraDataCalculation,
+  tickFormatter
 }: {
   chainId: number,
   accessTimeAddress: Address,
   timeGap: StatisticTimeGap;
   statisticType: StatisticType;
+  statisticInternalType: number;
   title: string;
   description: string;
   chartConfig: ChartConfig;
@@ -31,7 +34,8 @@ export default function StatisticChart({
   extraDataCalculation: (data: {
     date: string;
     value: number;
-  }[]) => number;
+  }[]) => any;
+  tickFormatter?: (data: number) => any;
 }) {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("value");
 
@@ -53,7 +57,7 @@ export default function StatisticChart({
           eq(statistic.chainId, chainId),
           eq(statistic.address, accessTimeAddress),
           eq(statistic.type, statisticType),
-          eq(statistic.internalType, StatisticVoteType.PROJECT),
+          eq(statistic.internalType, statisticInternalType),
           eq(statistic.timeGap, BigInt(timeGap)),
         ))
   });
@@ -68,7 +72,7 @@ export default function StatisticChart({
     return filledData
       .map((_data) => ({
         date: Statistic.formatUnixEpoch(_data.timeIndex, timeGap),
-        value: Number(_data.value),
+        value: tickFormatter ? tickFormatter(Number(_data.value)) : Number(_data.value),
       }))
       .reverse()
   }, [data, isSuccess, timeGap, timeTick]);

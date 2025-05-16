@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { SectionTabProjectProvider, useTabProject } from "../SectionTabProjectProvider";
 import StatisticChart from "../StatisticChart";
-import { StatisticTimeGap, StatisticType } from "@accesstimeio/accesstime-common";
+import { StatisticNewUserType, StatisticSoldAccessTimeType, StatisticTimeGap, StatisticType, StatisticUserType } from "@accesstimeio/accesstime-common";
 
 // total sold accessTimes
 // total user
@@ -13,13 +13,14 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
   const { activeProject } = useTabProject();
 
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid gap-3 lg:grid-cols-2">
       <StatisticChart
         type="area"
         chainId={activeProject.chainId}
         accessTimeAddress={activeProject.accessTimeAddress}
         timeGap={activeTimeGap}
         statisticType={StatisticType.USER}
+        statisticInternalType={StatisticUserType.PROJECT}
         title="Total Users"
         description="Showing total user growth for the last 1 year"
         chartConfig={{
@@ -31,7 +32,7 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
             color: "var(--color-green-500)",
           },
         }}
-        extraDataCalculation={(data) => data[0] ? data[0].value : 0}
+        extraDataCalculation={(data) => data.length > 0 ? data[data.length - 1].value : 0}
       />
       <StatisticChart
         type="bar"
@@ -39,6 +40,7 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
         accessTimeAddress={activeProject.accessTimeAddress}
         timeGap={activeTimeGap}
         statisticType={StatisticType.NEW_USER}
+        statisticInternalType={StatisticNewUserType.PROJECT}
         title="New Users"
         description="Showing new user growth for the last 1 year"
         chartConfig={{
@@ -58,6 +60,7 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
         accessTimeAddress={activeProject.accessTimeAddress}
         timeGap={activeTimeGap}
         statisticType={StatisticType.SOLD_ACCESSTIME}
+        statisticInternalType={StatisticSoldAccessTimeType.PROJECT}
         title="Total Sold AccessTime"
         description="Showing total sold accesstime for the last 1 year"
         chartConfig={{
@@ -69,7 +72,8 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
             color: "var(--color-green-500)",
           },
         }}
-        extraDataCalculation={(data) => data.reduce((acc, curr) => acc + curr.value, 0)}
+        extraDataCalculation={(data) => data.reduce((acc, curr) => acc + curr.value, 0) + "/h"}
+        tickFormatter={(data) => data / 3600}
       />
     </div>
   );
