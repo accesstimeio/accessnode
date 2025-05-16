@@ -83,3 +83,5 @@ export const DASHBOARD_SECTIONS: Record<SupportNodeType, ReactNode[]> = {
         <Votes />
     ]
 }
+
+export const defaultTimeTick = 48; // weekly -> 12 as monthly

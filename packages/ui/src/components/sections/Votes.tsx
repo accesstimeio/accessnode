@@ -1,15 +1,16 @@
 "use client";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+// credits: https://21st.dev/shadcn/chart/default
 import { useEffect, useMemo, useState } from "react";
 import { usePonderQuery } from "@ponder/react";
 import { and, desc, eq } from "@ponder/client";
 import { StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
 
 import { Statistic } from "@/helpers";
+import { defaultTimeTick } from "@/config";
 
 import { SectionTabProjectProvider, useTabProject } from "../SectionTabProjectProvider";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import Charts from "../Charts";
+import { ChartConfig } from "../ui/chart";
 
 import { statistic, accessVote } from "../../../../full/ponder.schema";
 
@@ -27,16 +28,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const timeTick = 48;
-
 function VotesContent() {
   const [activeChart, setActiveChart] = useState<keyof typeof chartConfig>("point");
-  const [activeTimeGap, setActiveTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH);
+  const [activeTimeGap] = useState<StatisticTimeGap>(StatisticTimeGap.MONTH); // todo: make changeable
 
   const { activeProject } = useTabProject();
 
   const userCountTimeTick = useMemo(() =>
-    activeTimeGap == StatisticTimeGap.MONTH ? timeTick / 4 : timeTick, [activeTimeGap]);
+    activeTimeGap == StatisticTimeGap.MONTH ? defaultTimeTick / 4 : defaultTimeTick, [activeTimeGap]);
 
   const { data: userCount, isSuccess: userCountSuccess, refetch: userCountRefetch } = usePonderQuery({
     enabled: false,
@@ -67,7 +66,7 @@ function VotesContent() {
           votePoint: accessVote.votePoint,
         })
         .from(accessVote)
-        .limit(timeTick)
+        .limit(defaultTimeTick)
         .orderBy(desc(accessVote.epochWeek))
         .where(and(
           eq(accessVote.chainId, activeProject.chainId),
@@ -86,7 +85,7 @@ function VotesContent() {
     }));
 
     const filledUserCount = Statistic.fillIndexGap(StatisticType.VOTE, activeTimeGap, userCount, userCountTimeTick);
-    let filledTotalPoint = Statistic.fillIndexGap(StatisticType.VOTE, StatisticTimeGap.WEEK, formattedTotalPoint, timeTick);
+    let filledTotalPoint = Statistic.fillIndexGap(StatisticType.VOTE, StatisticTimeGap.WEEK, formattedTotalPoint, defaultTimeTick);
 
     if (activeTimeGap == StatisticTimeGap.MONTH) {
       filledTotalPoint = Statistic.convertToByMonthly(filledTotalPoint);
@@ -118,83 +117,16 @@ function VotesContent() {
   }, [activeProject.accessTimeAddress, activeTimeGap]);
 
   return (
-    <Card className="p-0 m-0 border-0 shadow-none">
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Total Votes</CardTitle>
-          <CardDescription>
-            Showing total votes for the last 1 year
-          </CardDescription>
-        </div>
-        <div className="flex">
-          {["point", "userCount"].map((key) => {
-            const chart = key as keyof typeof chartConfig
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className="cursor-pointer relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className="text-xs text-muted-foreground">
-                  {chartConfig[chart].label}
-                </span>
-                <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {total[key as keyof typeof total].toLocaleString()}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <BarChart
-            accessibilityLayer
-            data={ticks}
-            margin={{
-              left: 0,
-              right: 0,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value)
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              }}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="views"
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  }}
-                />
-              }
-            />
-            <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <Charts
+      type="bar"
+      title="Total Votes"
+      description="Showing total votes for the last 1 year"
+      chartConfig={chartConfig}
+      activeChart={activeChart}
+      data={ticks}
+      extraData={total}
+      setActiveChart={setActiveChart}
+    />
   );
 }
 
