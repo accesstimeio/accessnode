@@ -16,7 +16,8 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
     <div className="grid gap-3 md:grid-cols-2">
       <StatisticChart
         type="area"
-        activeProject={activeProject}
+        chainId={activeProject.chainId}
+        accessTimeAddress={activeProject.accessTimeAddress}
         timeGap={activeTimeGap}
         statisticType={StatisticType.USER}
         title="Total Users"
@@ -33,8 +34,9 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
         extraDataCalculation={(data) => data[0] ? data[0].value : 0}
       />
       <StatisticChart
-        type="area"
-        activeProject={activeProject}
+        type="bar"
+        chainId={activeProject.chainId}
+        accessTimeAddress={activeProject.accessTimeAddress}
         timeGap={activeTimeGap}
         statisticType={StatisticType.NEW_USER}
         title="New Users"
@@ -51,8 +53,9 @@ function StatisticsContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap 
         extraDataCalculation={(data) => data.reduce((acc, curr) => acc + curr.value, 0)}
       />
       <StatisticChart
-        type="area"
-        activeProject={activeProject}
+        type="bar"
+        chainId={activeProject.chainId}
+        accessTimeAddress={activeProject.accessTimeAddress}
         timeGap={activeTimeGap}
         statisticType={StatisticType.SOLD_ACCESSTIME}
         title="Total Sold AccessTime"

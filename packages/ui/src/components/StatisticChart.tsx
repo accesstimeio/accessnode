@@ -1,4 +1,3 @@
-import { ActiveProject } from "@/components/SectionTabProjectProvider";
 import { ChartConfig } from "@/components/ui/chart";
 import { defaultTimeTick } from "@/config";
 import { StatisticTimeGap, StatisticType, StatisticVoteType } from "@accesstimeio/accesstime-common";
@@ -8,9 +7,11 @@ import { statistic } from "../../../full/ponder.schema";
 import { and, desc, eq } from "@ponder/client";
 import { Statistic } from "@/helpers";
 import Charts from "@/components/Charts";
+import { Address } from "viem";
 
 export default function StatisticChart({
-  activeProject,
+  chainId,
+  accessTimeAddress,
   timeGap,
   statisticType,
   title,
@@ -19,7 +20,8 @@ export default function StatisticChart({
   type,
   extraDataCalculation
 }: {
-  activeProject: ActiveProject;
+  chainId: number,
+  accessTimeAddress: Address,
   timeGap: StatisticTimeGap;
   statisticType: StatisticType;
   title: string;
@@ -48,8 +50,8 @@ export default function StatisticChart({
         .limit(timeTick)
         .orderBy(desc(statistic.timeIndex))
         .where(and(
-          eq(statistic.chainId, activeProject.chainId),
-          eq(statistic.address, activeProject.accessTimeAddress),
+          eq(statistic.chainId, chainId),
+          eq(statistic.address, accessTimeAddress),
           eq(statistic.type, statisticType),
           eq(statistic.internalType, StatisticVoteType.PROJECT),
           eq(statistic.timeGap, BigInt(timeGap)),
@@ -68,6 +70,7 @@ export default function StatisticChart({
         date: Statistic.formatUnixEpoch(_data.timeIndex, timeGap),
         value: Number(_data.value),
       }))
+      .reverse()
   }, [data, isSuccess, timeGap, timeTick]);
 
 
@@ -80,7 +83,7 @@ export default function StatisticChart({
 
   useEffect(() => {
     refetch();
-  }, [activeProject.accessTimeAddress, timeGap]);
+  }, [accessTimeAddress, timeGap]);
 
   return (
     <Charts

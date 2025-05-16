@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { accessTime } from "../../../full/ponder.schema";
 import Section from "./Section";
 
-export type ActiveProject = {
+type ActiveProject = {
   id: number,
   owner: Address;
   nextOwner: Address;
