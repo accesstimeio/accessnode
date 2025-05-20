@@ -11,7 +11,7 @@ pnpm create accessnode
 ## Usage
 
 1. Navigate to the project: `cd accessnode-app`
-2. Configure .env.local (e.g., set `VITE_ACCESSNODE_TYPE=ful`l and `DATABASE_URL`)
+2. Configure .env.local (e.g., set `VITE_ACCESSNODE_TYPE=full` and `DATABASE_URL`)
 3. Run the node:
     - Light mode: `pnpm start:light`
     - Full mode: `pnpm start:full`
@@ -35,7 +35,6 @@ pnpm create accessnode
 
 ## Resources
 
-- [AccessNode Repository](https://github.com/accesstimeio/accessnode)
 - [AccessTime Documentation](https://docs.accesstime.io)
 - [Ponder Documentation](https://ponder.sh)
 - [Drizzle ORM](https://orm.drizzle.team)
