@@ -1,7 +1,7 @@
 {
   "name": "accessnode",
   "version": "1.0.0",
-  "description": "",
+  "description": "Run a local node for AccessTime data. Light mode for purchases/users; Full mode includes voting/stats. Built with Ponder, Drizzle, and Hono API. Includes UI for data visualization.",
   "main": "index.js",
   "scripts": {
     "dev:ui": "pnpm --filter ui run dev",
@@ -20,7 +20,14 @@
     "codegen:light": "dotenv -e .env.local -- pnpm --filter light run codegen",
     "codegen:full": "dotenv -e .env.local -- pnpm --filter full run codegen"
   },
-  "keywords": [],
+  "keywords": [
+    "AccessTime",
+    "blockchain",
+    "subscriptions",
+    "Ponder",
+    "Drizzle",
+    "Hono"
+  ],
   "author": {
     "name": "AccessTime",
     "url": "https://github.com/accesstimeio"
