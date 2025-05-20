@@ -1,6 +1,7 @@
 import { Bar, Area, BarChart, CartesianGrid, XAxis, AreaChart } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
+import { Skeleton } from "./ui/skeleton";
 
 export default function Charts({
   type,
@@ -10,6 +11,7 @@ export default function Charts({
   activeChart,
   data,
   extraData,
+  loading,
   setActiveChart
 }: {
   type: "bar" | "area";
@@ -19,6 +21,7 @@ export default function Charts({
   activeChart: string;
   data: any[];
   extraData: any;
+  loading: boolean;
   setActiveChart: (activeChart: any) => void;
 }) {
   return (
@@ -49,104 +52,110 @@ export default function Charts({
         </div>
       </CardHeader>
       <CardContent className="px-2 sm:p-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          {
-            type == "bar"
-              ? (
-                <BarChart
-                  accessibilityLayer
-                  data={data}
-                  margin={{
-                    left: 0,
-                    right: 0,
-                  }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    minTickGap={32}
-                    tickFormatter={(value) => {
-                      const date = new Date(value)
-                      return date.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    }}
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        className="w-[150px]"
-                        nameKey="views"
-                        labelFormatter={(value) => {
-                          return new Date(value).toLocaleDateString("en-US", {
+        {
+          loading ? (
+            <Skeleton className="h-[250px] rounded-none" />
+          ) : (
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-[250px] w-full"
+            >
+              {
+                type == "bar"
+                  ? (
+                    <BarChart
+                      accessibilityLayer
+                      data={data}
+                      margin={{
+                        left: 0,
+                        right: 0,
+                      }}
+                    >
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        minTickGap={32}
+                        tickFormatter={(value) => {
+                          const date = new Date(value)
+                          return date.toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
-                            year: "numeric",
                           })
                         }}
                       />
-                    }
-                  />
-                  <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-                </BarChart>
-              )
-              : (
-                <AreaChart
-                  accessibilityLayer
-                  data={data}
-                  margin={{
-                    left: 0,
-                    right: 0,
-                  }}
-                >
-                  <defs>
-                    <linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={`var(--color-${activeChart})`} stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor={`var(--color-${activeChart})`} stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    minTickGap={32}
-                    tickFormatter={(value) => {
-                      const date = new Date(value)
-                      return date.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    }}
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        className="w-[150px]"
-                        nameKey="views"
-                        labelFormatter={(value) => {
-                          return new Date(value).toLocaleDateString("en-US", {
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            className="w-[150px]"
+                            nameKey="views"
+                            labelFormatter={(value) => {
+                              return new Date(value).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            }}
+                          />
+                        }
+                      />
+                      <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+                    </BarChart>
+                  )
+                  : (
+                    <AreaChart
+                      accessibilityLayer
+                      data={data}
+                      margin={{
+                        left: 0,
+                        right: 0,
+                      }}
+                    >
+                      <defs>
+                        <linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={`var(--color-${activeChart})`} stopOpacity={0.8} />
+                          <stop offset="95%" stopColor={`var(--color-${activeChart})`} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        minTickGap={32}
+                        tickFormatter={(value) => {
+                          const date = new Date(value)
+                          return date.toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
-                            year: "numeric",
                           })
                         }}
                       />
-                    }
-                  />
-                  <Area type="monotone" dataKey={activeChart} stroke={`var(--color-${activeChart})`} fill={`url(#colorArea)`} />
-                </AreaChart>
-              )
-          }
-        </ChartContainer>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            className="w-[150px]"
+                            nameKey="views"
+                            labelFormatter={(value) => {
+                              return new Date(value).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            }}
+                          />
+                        }
+                      />
+                      <Area type="monotone" dataKey={activeChart} stroke={`var(--color-${activeChart})`} fill={`url(#colorArea)`} />
+                    </AreaChart>
+                  )
+              }
+            </ChartContainer>
+          )
+        }
       </CardContent>
     </Card>
   );

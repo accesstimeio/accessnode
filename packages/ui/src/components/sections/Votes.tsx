@@ -38,7 +38,12 @@ function VotesContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap }) {
   const userCountTimeTick = useMemo(() =>
     activeTimeGap == StatisticTimeGap.MONTH ? defaultTimeTick / 4 : defaultTimeTick, [activeTimeGap]);
 
-  const { data: userCount, isSuccess: userCountSuccess, refetch: userCountRefetch } = usePonderQuery({
+  const {
+    data: userCount,
+    isSuccess: userCountSuccess,
+    refetch: userCountRefetch,
+    isLoading: userCountLoading
+  } = usePonderQuery({
     enabled: false,
     queryFn: (db) =>
       db
@@ -58,7 +63,12 @@ function VotesContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap }) {
         ))
   });
 
-  const { data: totalPoint, isSuccess: totalPointSuccess, refetch: totalPointRefetch } = usePonderQuery({
+  const {
+    data: totalPoint,
+    isSuccess: totalPointSuccess,
+    refetch: totalPointRefetch,
+    isLoading: totalPointLoading
+  } = usePonderQuery({
     enabled: false,
     queryFn: (db) =>
       db
@@ -112,6 +122,8 @@ function VotesContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap }) {
     [ticks],
   );
 
+  const loading = useMemo(() => userCountLoading || totalPointLoading, [userCountLoading, totalPointLoading]);
+
   useEffect(() => {
     userCountRefetch();
     totalPointRefetch();
@@ -126,6 +138,7 @@ function VotesContent({ activeTimeGap }: { activeTimeGap: StatisticTimeGap }) {
       activeChart={activeChart}
       data={ticks}
       extraData={total}
+      loading={loading}
       setActiveChart={setActiveChart}
     />
   );

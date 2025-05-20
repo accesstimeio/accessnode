@@ -42,7 +42,7 @@ export default function StatisticChart({
   const timeTick = useMemo(() =>
     timeGap == StatisticTimeGap.MONTH ? defaultTimeTick / 4 : defaultTimeTick, [timeGap]);
 
-  const { data, isSuccess, refetch } = usePonderQuery({
+  const { data, isSuccess, refetch, isLoading } = usePonderQuery({
     enabled: false,
     queryFn: (db) =>
       db
@@ -98,6 +98,7 @@ export default function StatisticChart({
       activeChart={activeChart}
       data={ticks}
       extraData={extraData}
+      loading={isLoading}
       setActiveChart={setActiveChart}
     />
   );
